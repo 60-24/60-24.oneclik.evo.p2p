@@ -1,6 +1,6 @@
 # DEC-006 — SYSTEM BUILDER GRAPH INVARIANTS
 
-**Status:** PROPOSED FOR HUMAN APPROVAL  
+**Status:** APPROVED  
 **Session:** SES-003  
 **Scope:** Semantic invariants of the System Builder Graph
 
@@ -132,8 +132,8 @@ It does not select a concrete implementation technology.
 
 ## 20. Approval Gate
 
-This document is a **proposal for human approval**.
+This decision is approved by the human project authority for progression to the next design step.
 
-The next action after approval is to derive the **minimal Graph semantic model and contracts** from these invariants.
+The next action is to derive the **minimal Graph semantic model and contracts** from these invariants.
 
 No implementation technology should be selected before that step unless a separate decision explicitly authorizes it.
