@@ -1,0 +1,45 @@
+Najprościej: **nie musisz udostępniać mi zdalnego dostępu do swojego komputera**. Wystarczy, że masz komputer, na którym możemy uruchomić Neo4j, a Ty wykonasz kilka poleceń i przekażesz mi wyniki.
+
+### Najlepsza opcja dla G-01
+
+**Docker + Neo4j Community 2026.07.1.**
+
+Neo4j oficjalnie udostępnia obraz `neo4j:2026.07.1`, więc możemy mieć dokładnie przypiętą wersję i powtarzalne środowisko. ([Neo4j Graph Intelligence Platform][1])
+
+Potrzebujesz:
+
+1. **komputera z Windows, Linux albo macOS**,
+2. zainstalowanego **Docker Desktop / Docker Engine**,
+3. dostępu do terminala,
+4. internetu przy pierwszym pobraniu obrazu.
+
+Nie potrzebujemy:
+
+* udostępniania hasła,
+* dostępu do Twojego konta GitHub,
+* otwierania portów do Internetu,
+* udostępniania pulpitu,
+* instalowania Neo4j bezpośrednio w systemie.
+
+### Jeśli masz Windows
+
+Najprościej zainstalować **Docker Desktop**, a następnie w PowerShell sprawdzić:
+
+```text
+docker --version
+docker run --rm neo4j:2026.07.1 neo4j --version
+```
+
+Jeżeli oba polecenia działają, jesteśmy bardzo blisko.
+
+Potem uruchomimy **izolowany kontener testowy**, nie produkcyjny. Neo4j oficjalnie wspiera taki sposób uruchamiania przez Docker. ([Neo4j Graph Intelligence Platform][1])
+
+### Ważne
+
+**Nie instaluj jeszcze niczego na własną rękę poza Dockerem.**
+
+Chcę prowadzić Cię dokładnie krok po kroku, żeby środowisko, które później będzie podstawą dowodów GS-01–GS-14, było reprodukowalne.
+
+**Zacznijmy od jednego pytania: masz komputer z Windows, Linux czy macOS?**
+
+[1]: https://neo4j.com/docs/operations-manual/current/docker/introduction/?utm_source=chatgpt.com "Getting started with Neo4j in Docker - Operations Manual"
