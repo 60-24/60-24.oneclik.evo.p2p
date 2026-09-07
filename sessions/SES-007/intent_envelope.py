@@ -13,7 +13,7 @@ FIELDS = (
     "protected_decisions", "authority", "status",
 )
 STATUSES = ("VALID", "INCOMPLETE", "AMBIGUOUS", "PROTECTED")
-LIST_FIELDS = FIELDS[3:10]
+LIST_FIELDS = FIELDS[3:9]
 
 
 def _text(value: Any) -> str:
