@@ -1,0 +1,109 @@
+name: G-01 Neo4j — GS-02 Conformance
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/g01-neo4j-gs02.yml'
+      - 'sessions/SES-003/DEC-009_SYSTEM_BUILDER_GRAPH_CONFORMANCE_SCENARIOS.md'
+      - 'sessions/SES-003/DEC-010_SYSTEM_BUILDER_GRAPH_REFERENCE_TEST_MATRIX_AND_ACCEPTANCE_CRITERIA.md'
+      - 'sessions/SES-004/G-01_NEO4J_CONFORMANCE_EVALUATION_PROTOCOL.md'
+      - 'sessions/SES-004/G-01_NEO4J_CANDIDATE_PROFILE_AND_SEMANTIC_MAPPING.md'
+
+jobs:
+  gs-02:
+    name: GS-02 — Typed Edge
+    runs-on: ubuntu-latest
+
+    services:
+      neo4j:
+        image: neo4j:2026.07.1
+        env:
+          NEO4J_AUTH: neo4j/test-password-60-24
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p test-password-60-24 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Runtime Gate — verify Neo4j HTTP endpoint
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:7474 >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:7474 >/dev/null
+
+      - name: Runtime Gate — record exact Neo4j version
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          test -n "$CONTAINER_ID"
+          docker exec "$CONTAINER_ID" neo4j --version | tee evidence/neo4j-version.txt
+          echo "IMPLEMENTATION_VERSION=$(docker exec "$CONTAINER_ID" neo4j --version)" >> evidence/runtime-metadata.txt
+          echo 'EDITION=Community' >> evidence/runtime-metadata.txt
+          echo 'DEPLOYMENT=GitHub Actions service container' >> evidence/runtime-metadata.txt
+          echo 'IMAGE=neo4j:2026.07.1' >> evidence/runtime-metadata.txt
+          echo 'HOST_OS=ubuntu-latest' >> evidence/runtime-metadata.txt
+          echo "GITHUB_SHA=$GITHUB_SHA" >> evidence/runtime-metadata.txt
+          echo "GITHUB_RUN_ID=$GITHUB_RUN_ID" >> evidence/runtime-metadata.txt
+
+      - name: Runtime Gate — execute Cypher smoke query
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          docker exec "$CONTAINER_ID" cypher-shell -u neo4j -p test-password-60-24 'RETURN 1 AS runtime_ok' | tee evidence/runtime-smoke.txt
+
+      - name: GS-02 — establish clean fixture and create typed edge
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          docker exec "$CONTAINER_ID" cypher-shell -u neo4j -p test-password-60-24 \
+            'MATCH (n) DETACH DELETE n; CREATE (:SBNode {id:"gs02-node-a"}), (:SBNode {id:"gs02-node-b"}); MATCH (a:SBNode {id:"gs02-node-a"}), (b:SBNode {id:"gs02-node-b"}) CREATE (a)-[:IMPLEMENTS]->(b);'
+
+      - name: GS-02 — verify endpoints and semantic relation type
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          OUTPUT="$(docker exec "$CONTAINER_ID" cypher-shell -u neo4j -p test-password-60-24 --format plain \
+            'MATCH (a:SBNode {id:"gs02-node-a"})-[r:IMPLEMENTS]->(b:SBNode {id:"gs02-node-b"}) RETURN a.id AS source_id, type(r) AS relation_type, b.id AS target_id;')"
+          printf '%s\n' "$OUTPUT" | tee evidence/gs02-verification.txt
+          echo "$OUTPUT" | grep -F 'gs02-node-a' >/dev/null
+          echo "$OUTPUT" | grep -F 'IMPLEMENTS' >/dev/null
+          echo "$OUTPUT" | grep -F 'gs02-node-b' >/dev/null
+          echo 'GS02_RESULT=PASS' | tee -a evidence/gs02-verification.txt
+
+      - name: GS-02 — record evidence
+        run: |
+          set -euo pipefail
+          {
+            echo 'TEST_ID=GS-02'
+            echo 'IMPLEMENTATION_VERSION=Neo4j 2026.07.1 Community'
+            echo 'CONTEXT=GitHub Actions ubuntu-latest service container; clean database fixture'
+            echo 'EXPECTED_RESULT=Node A, Node B and semantic relation IMPLEMENTS remain preserved'
+            echo 'ACTUAL_RESULT=Node A, Node B and relation type IMPLEMENTS were retrieved from the created edge'
+            echo 'STATUS=PASS'
+            echo 'OBSERVATION=Neo4j preserved both endpoints and the requested typed semantic relation in the controlled fixture'
+            echo 'EVIDENCE_REFERENCE=runtime-metadata.txt; runtime-smoke.txt; gs02-verification.txt'
+            echo 'VALIDATION_STATUS=OBSERVED'
+            echo 'CONFIDENCE=HIGH'
+            date -u +"TIMESTAMP_UTC=%Y-%m-%dT%H:%M:%SZ"
+          } | tee evidence/GS-02-evidence.txt
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: G-01-GS-02-evidence
+          path: evidence/
