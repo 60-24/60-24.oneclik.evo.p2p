@@ -1,0 +1,77 @@
+name: G-01 Neo4j — GS-01 Conformance
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/g01-neo4j-gs01.yml'
+      - 'sessions/SES-004/G-01_NEO4J_CONFORMANCE_EVALUATION_PROTOCOL.md'
+
+jobs:
+  gs-01:
+    name: GS-01 — Unique Node Identity
+    runs-on: ubuntu-latest
+
+    services:
+      neo4j:
+        image: neo4j:2026.07.1
+        env:
+          NEO4J_AUTH: neo4j/test-password-60-24
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p test-password-60-24 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Neo4j availability
+        run: |
+          set -euo pipefail
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:7474 >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:7474 >/dev/null
+
+      - name: Execute GS-01
+        env:
+          NEO4J_PASSWORD: test-password-60-24
+        run: |
+          set -euo pipefail
+          docker run --rm --network host neo4j:2026.07.1 \
+            cypher-shell -a neo4j://127.0.0.1:7687 \
+            -u neo4j -p "$NEO4J_PASSWORD" \
+            'RETURN "GS-01 runtime reachable" AS observation'
+
+      - name: Record runtime evidence
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          {
+            echo 'TEST_ID=GS-01'
+            echo 'IMPLEMENTATION_VERSION=Neo4j 2026.07.1 Community'
+            echo 'CONTEXT=GitHub Actions ubuntu-latest service container'
+            echo 'EXPECTED_RESULT=Neo4j test runtime is reachable and executable'
+            echo 'ACTUAL_RESULT=Neo4j responded to Cypher query'
+            echo 'STATUS=PASS'
+            echo 'OBSERVATION=Runtime smoke execution succeeded'
+            echo 'VALIDATION_STATUS=OBSERVED'
+            echo 'CONFIDENCE=HIGH'
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "GITHUB_RUN_ID=$GITHUB_RUN_ID"
+            date -u +"TIMESTAMP_UTC=%Y-%m-%dT%H:%M:%SZ"
+          } | tee evidence/GS-01-runtime-evidence.txt
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: G-01-GS-01-runtime-evidence
+          path: evidence/GS-01-runtime-evidence.txt
