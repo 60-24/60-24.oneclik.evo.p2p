@@ -1,0 +1,33 @@
+name: VS-001 Verification
+
+on:
+  push:
+    paths:
+      - 'sessions/SES-006/vs-001/**'
+      - '.github/workflows/vs001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sessions/SES-006/vs-001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile run_vs001.py test_vs001.py
+      - name: Unit tests
+        run: python -m unittest test_vs001.py -v
+      - name: Execute vertical slice
+        run: python run_vs001.py --output ./ci-output
+      - name: Verify delivery status
+        run: python -c "import json; v=json.load(open('ci-output/verification.json', encoding='utf-8')); assert v['result']=='PASS', v"
