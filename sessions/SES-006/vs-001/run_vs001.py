@@ -115,7 +115,7 @@ def build(output_dir: Path) -> dict[str, Any]:
             "acceptance_criteria_present": bool(spec["acceptance_criteria"]),
             "markdown_and_json_generated": True,
             "deterministic_representation": True,
-            "network_access_required": False,
+            "network_access_not_required": True,
         },
         "artifact_hashes": hashes,
     }
