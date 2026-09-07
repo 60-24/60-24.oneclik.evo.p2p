@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/g01-neo4j-gs01.yml'
       - 'sessions/SES-004/G-01_NEO4J_CONFORMANCE_EVALUATION_PROTOCOL.md'
+      - 'sessions/SES-004/G-01_NEO4J_CANDIDATE_PROFILE_AND_SEMANTIC_MAPPING.md'
 
 jobs:
   gs-01:
@@ -30,7 +31,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify Neo4j availability
+      - name: Runtime Gate — verify Neo4j HTTP endpoint
         run: |
           set -euo pipefail
           for i in {1..30}; do
@@ -41,37 +42,71 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:7474 >/dev/null
 
-      - name: Execute GS-01
-        env:
-          NEO4J_PASSWORD: test-password-60-24
-        run: |
-          set -euo pipefail
-          docker run --rm --network host neo4j:2026.07.1 \
-            cypher-shell -a neo4j://127.0.0.1:7687 \
-            -u neo4j -p "$NEO4J_PASSWORD" \
-            'RETURN "GS-01 runtime reachable" AS observation'
-
-      - name: Record runtime evidence
+      - name: Runtime Gate — record exact Neo4j version
         run: |
           set -euo pipefail
           mkdir -p evidence
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          test -n "$CONTAINER_ID"
+          docker exec "$CONTAINER_ID" neo4j --version | tee evidence/neo4j-version.txt
+          echo "IMPLEMENTATION_VERSION=$(docker exec "$CONTAINER_ID" neo4j --version)" >> evidence/runtime-metadata.txt
+          echo 'EDITION=Community' >> evidence/runtime-metadata.txt
+          echo 'DEPLOYMENT=GitHub Actions service container' >> evidence/runtime-metadata.txt
+          echo 'IMAGE=neo4j:2026.07.1' >> evidence/runtime-metadata.txt
+          echo 'HOST_OS=ubuntu-latest' >> evidence/runtime-metadata.txt
+          echo "GITHUB_SHA=$GITHUB_SHA" >> evidence/runtime-metadata.txt
+          echo "GITHUB_RUN_ID=$GITHUB_RUN_ID" >> evidence/runtime-metadata.txt
+
+      - name: Runtime Gate — execute Cypher smoke query
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          docker exec "$CONTAINER_ID" cypher-shell -u neo4j -p test-password-60-24 'RETURN 1 AS runtime_ok' | tee evidence/runtime-smoke.txt
+
+      - name: GS-01 — establish clean fixture and uniqueness invariant
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          docker exec "$CONTAINER_ID" cypher-shell -u neo4j -p test-password-60-24 \
+            'MATCH (n) DETACH DELETE n; DROP CONSTRAINT sb_node_id_unique IF EXISTS; CREATE CONSTRAINT sb_node_id_unique IF NOT EXISTS FOR (n:SBNode) REQUIRE n.id IS UNIQUE; CREATE (:SBNode {id:"gs01-node-001"}); MATCH (n:SBNode {id:"gs01-node-001"}) RETURN n.id AS retrieved_id;'
+
+      - name: GS-01 — verify duplicate identity is rejected
+        run: |
+          set -euo pipefail
+          CONTAINER_ID="$(docker ps --filter 'ancestor=neo4j:2026.07.1' --format '{{.ID}}' | head -n1)"
+          set +e
+          OUTPUT="$(docker exec "$CONTAINER_ID" cypher-shell -u neo4j -p test-password-60-24 \
+            'CREATE (:SBNode {id:"gs01-node-001"});' 2>&1)"
+          RC=$?
+          set -e
+          printf '%s\n' "$OUTPUT" | tee evidence/gs01-duplicate-attempt.txt
+          echo "DUPLICATE_ATTEMPT_EXIT_CODE=$RC" | tee -a evidence/gs01-duplicate-attempt.txt
+          if [ "$RC" -eq 0 ]; then
+            echo 'GS01_RESULT=FAIL' | tee -a evidence/gs01-duplicate-attempt.txt
+            exit 1
+          fi
+          echo 'GS01_RESULT=PASS' | tee -a evidence/gs01-duplicate-attempt.txt
+
+      - name: GS-01 — record evidence
+        run: |
+          set -euo pipefail
           {
             echo 'TEST_ID=GS-01'
             echo 'IMPLEMENTATION_VERSION=Neo4j 2026.07.1 Community'
-            echo 'CONTEXT=GitHub Actions ubuntu-latest service container'
-            echo 'EXPECTED_RESULT=Neo4j test runtime is reachable and executable'
-            echo 'ACTUAL_RESULT=Neo4j responded to Cypher query'
+            echo 'CONTEXT=GitHub Actions ubuntu-latest service container; clean database fixture'
+            echo 'EXPECTED_RESULT=Unique, stable node identity is enforceable for the tested SBNode identity invariant'
+            echo 'ACTUAL_RESULT=Existing identity was retrievable and duplicate identity creation was rejected by Neo4j uniqueness constraint'
             echo 'STATUS=PASS'
-            echo 'OBSERVATION=Runtime smoke execution succeeded'
+            echo 'OBSERVATION=Neo4j enforced uniqueness for SBNode.id in the controlled fixture'
+            echo 'EVIDENCE_REFERENCE=runtime-metadata.txt; runtime-smoke.txt; gs01-duplicate-attempt.txt'
             echo 'VALIDATION_STATUS=OBSERVED'
             echo 'CONFIDENCE=HIGH'
-            echo "GITHUB_SHA=$GITHUB_SHA"
-            echo "GITHUB_RUN_ID=$GITHUB_RUN_ID"
             date -u +"TIMESTAMP_UTC=%Y-%m-%dT%H:%M:%SZ"
-          } | tee evidence/GS-01-runtime-evidence.txt
+          } | tee evidence/GS-01-evidence.txt
 
       - name: Upload evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: G-01-GS-01-runtime-evidence
-          path: evidence/GS-01-runtime-evidence.txt
+          name: G-01-GS-01-evidence
+          path: evidence/
