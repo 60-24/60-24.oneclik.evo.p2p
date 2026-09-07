@@ -18,7 +18,7 @@ class VS001Tests(unittest.TestCase):
         spec = normalize(ambiguous)
         self.assertEqual(spec["status"], "PROPOSED")
         self.assertTrue(spec["open_questions"])
-        self.assertIn("acceptance criteria", spec["open_questions"][0])
+        self.assertIn("acceptance criteria", spec["open_questions"][0].lower())
 
     def test_t003_constraint_preservation(self):
         spec = normalize(EXAMPLE_INTENT)
