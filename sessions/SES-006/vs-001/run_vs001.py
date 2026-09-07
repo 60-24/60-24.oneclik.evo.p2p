@@ -32,7 +32,29 @@ EXAMPLE_INTENT = {
 }
 
 
+def validate_intent(intent: dict[str, Any]) -> None:
+    required = ("id", "statement", "constraints", "acceptance_criteria")
+    missing = [key for key in required if key not in intent]
+    if missing:
+        raise ValueError(f"Intent missing required fields: {', '.join(missing)}")
+    if not isinstance(intent["statement"], str) or not intent["statement"].strip():
+        raise ValueError("Intent.statement must be a non-empty string")
+    if not isinstance(intent["constraints"], list):
+        raise ValueError("Intent.constraints must be a list")
+    if not isinstance(intent["acceptance_criteria"], list):
+        raise ValueError("Intent.acceptance_criteria must be a list")
+
+
 def normalize(intent: dict[str, Any]) -> dict[str, Any]:
+    validate_intent(intent)
+    open_questions = []
+    assumptions = [
+        "The input is a readable UTF-8 text file.",
+        "Word counting uses whitespace-delimited tokens.",
+    ]
+    if not intent["acceptance_criteria"]:
+        open_questions.append("Acceptance criteria must be supplied before delivery.")
+
     return {
         "id": "SPEC-VS001-001",
         "intent_id": intent["id"],
@@ -41,13 +63,10 @@ def normalize(intent: dict[str, Any]) -> dict[str, Any]:
         "inputs": ["text file"],
         "outputs": ["line count", "word count", "character count"],
         "constraints": list(intent["constraints"]),
-        "assumptions": [
-            "The input is a readable UTF-8 text file.",
-            "Word counting uses whitespace-delimited tokens.",
-        ],
-        "open_questions": [],
+        "assumptions": assumptions,
+        "open_questions": open_questions,
         "acceptance_criteria": list(intent["acceptance_criteria"]),
-        "status": "VERIFIED",
+        "status": "PROPOSED" if open_questions else "VERIFIED",
     }
 
 
@@ -85,15 +104,36 @@ def render_markdown(spec: dict[str, Any]) -> str:
     lines += [f"- `{item}`" for item in spec["constraints"]]
     lines += ["", "## Assumptions", ""]
     lines += [f"- {item}" for item in spec["assumptions"]]
-    lines += ["", "## Open Questions", "", "- None.", "", "## Acceptance Criteria", ""]
+    lines += ["", "## Open Questions", ""]
+    lines += [f"- {item}" for item in spec["open_questions"]] or ["- None."]
+    lines += ["", "## Acceptance Criteria", ""]
     lines += [f"- [ ] {item}" for item in spec["acceptance_criteria"]]
     lines += [""]
     return "\n".join(lines)
 
 
-def build(output_dir: Path) -> dict[str, Any]:
+def deliver(output_dir: Path, spec_id: str, verification: dict[str, Any], hashes: dict[str, str]) -> dict[str, Any]:
+    if not spec_id or not verification or verification.get("result") != "PASS":
+        raise ValueError("Delivery requires a source specification and passing verification evidence")
+    if "verification.json" not in hashes:
+        raise ValueError("Delivery requires verification artifact evidence")
+    manifest = {
+        "id": "DELIVERY-VS001-001",
+        "specification_id": spec_id,
+        "verification_id": verification["id"],
+        "artifacts": hashes,
+        "delivery_status": "DELIVERED",
+    }
+    (output_dir / "delivery-manifest.json").write_text(
+        canonical_json(manifest), encoding="utf-8", newline="\n"
+    )
+    return manifest
+
+
+def build(output_dir: Path, intent: dict[str, Any] | None = None) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    spec = normalize(EXAMPLE_INTENT)
+    source_intent = EXAMPLE_INTENT if intent is None else intent
+    spec = normalize(source_intent)
     json_text = canonical_json(spec)
     md_text = render_markdown(spec)
 
@@ -110,11 +150,12 @@ def build(output_dir: Path) -> dict[str, Any]:
         "id": "VERIFICATION-VS001-001",
         "specification_id": spec["id"],
         "checks": {
-            "intent_preserved": spec["intent"] == EXAMPLE_INTENT["statement"],
-            "constraints_preserved": spec["constraints"] == EXAMPLE_INTENT["constraints"],
+            "intent_preserved": spec["intent"] == source_intent["statement"],
+            "constraints_preserved": spec["constraints"] == source_intent["constraints"],
             "acceptance_criteria_present": bool(spec["acceptance_criteria"]),
+            "open_questions_explicit": isinstance(spec["open_questions"], list),
             "markdown_and_json_generated": True,
-            "deterministic_representation": True,
+            "deterministic_representation": canonical_json(spec) == canonical_json(normalize(source_intent)),
             "network_access_not_required": True,
         },
         "artifact_hashes": hashes,
@@ -126,16 +167,8 @@ def build(output_dir: Path) -> dict[str, Any]:
     )
     hashes["verification.json"] = sha256_text(verification_text)
 
-    manifest = {
-        "id": "DELIVERY-VS001-001",
-        "specification_id": spec["id"],
-        "verification_id": verification["id"],
-        "artifacts": hashes,
-        "delivery_status": "DELIVERED" if verification["result"] == "PASS" else "REJECTED",
-    }
-    (output_dir / "delivery-manifest.json").write_text(
-        canonical_json(manifest), encoding="utf-8", newline="\n"
-    )
+    if verification["result"] == "PASS":
+        deliver(output_dir, spec["id"], verification, hashes)
     return verification
 
 
