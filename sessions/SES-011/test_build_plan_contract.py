@@ -1,24 +1,22 @@
-"""SES-011 TDD contract tests for Specification -> BuildPlan.
+"""SES-011 Gate 01 — executable TDD contract tests for Specification -> BuildPlan.
 
-The tests encode the SES-010 BuildPlan contract.
-Transformer implementation is intentionally absent.
+These tests define observable behaviour from the SES-010 BuildPlan contract.
+The transformer is intentionally absent at Gate 01; RED must therefore come from
+that missing implementation boundary, not from assertions about hard-coded data.
 """
+
+from __future__ import annotations
+
+import importlib
+import json
+from copy import deepcopy
+from typing import Any
 
 import pytest
 
 
-ALLOWED_ORIGINS = {
-    "DERIVED",
-    "PROPOSED",
-    "UNRESOLVED",
-}
-
-ALLOWED_PLAN_STATUSES = {
-    "DRAFT",
-    "VALIDATED",
-    "BLOCKED",
-    "READY_FOR_APPROVAL",
-}
+BUILD_PLAN_MODULE = "sessions.SES_011.build_plan"
+TRANSFORMER_NAME = "transform_specification_to_build_plan"
 
 REQUIRED_BUILD_PLAN_FIELDS = {
     "build_plan_id",
@@ -37,151 +35,272 @@ REQUIRED_BUILD_PLAN_FIELDS = {
     "determinism",
 }
 
+REQUIRED_STEP_FIELDS = {
+    "id",
+    "sequence",
+    "action",
+    "target",
+    "preconditions",
+    "inputs",
+    "expected_outputs",
+    "acceptance_criteria",
+    "provenance",
+    "origin",
+    "execution_state",
+}
 
-def validate_build_plan_contract(plan):
-    """Contract validator expected from the implementation layer."""
-    raise NotImplementedError
+ALLOWED_ORIGINS = {"DERIVED", "PROPOSED", "UNRESOLVED"}
+ALLOWED_PLAN_STATUSES = {
+    "DRAFT",
+    "VALIDATED",
+    "BLOCKED",
+    "READY_FOR_APPROVAL",
+}
 
 
-def test_build_plan_has_contract_structure():
-    plan = {
-        "build_plan_id": "bp-1",
-        "source_specification_id": "spec-1",
-        "contract_version": 1,
-        "status": "DRAFT",
-        "objective": {"statement": "test", "origin": "DERIVED"},
-        "steps": [],
-        "dependencies": [],
+def _transformer():
+    """Load the implementation seam defined for this TDD contract.
+
+    Gate 01 deliberately expects this import to fail until implementation begins.
+    The tests must still collect successfully so the RED reason is unambiguous.
+    """
+    try:
+        module = importlib.import_module(BUILD_PLAN_MODULE)
+    except ModuleNotFoundError as exc:
+        pytest.fail(
+            "RED: SES-011 transformer implementation is intentionally absent; "
+            f"expected {BUILD_PLAN_MODULE}.{TRANSFORMER_NAME}"
+        )
+    transform = getattr(module, TRANSFORMER_NAME, None)
+    if not callable(transform):
+        pytest.fail(
+            f"RED: expected callable {BUILD_PLAN_MODULE}.{TRANSFORMER_NAME}"
+        )
+    return transform
+
+
+def _valid_specification(**overrides: Any) -> dict[str, Any]:
+    """Minimal valid SES-008-shaped Specification used as contract input."""
+    specification = {
+        "specification_id": "spec-001",
+        "source_intent_id": "intent-001",
+        "version": 1,
+        "status": "VALID",
+        "objective": {
+            "statement": "Build the requested system",
+            "source_intent_id": "intent-001",
+            "source_field": "objective",
+            "origin": "DERIVED",
+        },
+        "requirements": [
+            {
+                "id": "req-001",
+                "statement": "Create the requested component",
+                "source_element_id": "intent-element-001",
+                "origin": "DERIVED",
+            }
+        ],
         "constraints": [],
+        "inputs": [],
+        "outputs": [],
+        "acceptance_criteria": [],
         "assumptions": [],
         "unresolved_decisions": [],
-        "approval": {"required": False, "status": "NOT_REQUIRED", "authority_scope": "NONE"},
-        "blockers": [],
-        "provenance": [],
-        "determinism": {"canonicalization": "required", "ordering": "stable", "identity_rule": "stable"},
+        "provenance": [
+            {
+                "source_intent_id": "intent-001",
+                "source_element_id": "intent-element-001",
+                "specification_element_id": "req-001",
+                "origin": "DERIVED",
+            }
+        ],
+        "authority": {"scope": "human-approved"},
     }
+    specification.update(overrides)
+    return specification
+
+
+def _canonical(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def test_valid_specification_produces_structurally_valid_build_plan():
+    plan = _transformer()(_valid_specification())
+
     assert REQUIRED_BUILD_PLAN_FIELDS <= set(plan)
+    assert plan["source_specification_id"] == "spec-001"
+    assert plan["contract_version"] == 1
+    assert plan["status"] in ALLOWED_PLAN_STATUSES
+    assert isinstance(plan["steps"], list)
+    assert isinstance(plan["approval"], dict)
+    assert isinstance(plan["determinism"], dict)
+
+    for step in plan["steps"]:
+        assert REQUIRED_STEP_FIELDS <= set(step)
+        assert step["origin"] in ALLOWED_ORIGINS
 
 
-def test_plan_status_is_closed_set():
-    assert ALLOWED_PLAN_STATUSES == {
-        "DRAFT",
-        "VALIDATED",
-        "BLOCKED",
-        "READY_FOR_APPROVAL",
-    }
+def test_every_derived_execution_relevant_step_has_provenance():
+    plan = _transformer()(_valid_specification())
+    derived_steps = [step for step in plan["steps"] if step["origin"] == "DERIVED"]
+
+    assert derived_steps, "valid requirement must produce at least one derived step"
+    for step in derived_steps:
+        assert step["provenance"]
+        for provenance in step["provenance"]:
+            assert provenance["source_specification_id"] == "spec-001"
+            assert provenance["source_specification_element_id"]
+            assert provenance["build_plan_element_id"] == step["id"]
+            assert provenance["origin"] == "DERIVED"
 
 
-def test_origin_semantics_are_closed_set():
-    assert ALLOWED_ORIGINS == {
-        "DERIVED",
-        "PROPOSED",
-        "UNRESOLVED",
-    }
+def test_proposed_elements_remain_proposed_and_require_approval():
+    specification = _valid_specification(
+        requirements=[
+            {
+                "id": "req-001",
+                "statement": "Create the requested component",
+                "source_element_id": "intent-element-001",
+                "origin": "DERIVED",
+            },
+            {
+                "id": "req-002",
+                "statement": "Implementation choice is intentionally left to the builder",
+                "source_element_id": "intent-element-002",
+                "origin": "PROPOSED",
+            },
+        ]
+    )
 
+    plan = _transformer()(specification)
+    proposed = [step for step in plan["steps"] if step["origin"] == "PROPOSED"]
 
-def test_derived_step_requires_provenance():
-    step = {
-        "id": "step-1",
-        "origin": "DERIVED",
-        "provenance": [{
-            "source_specification_id": "spec-1",
-            "source_specification_element_id": "spec-element-1",
-            "build_plan_element_id": "step-1",
-            "origin": "DERIVED",
-        }],
-    }
-    assert step["origin"] == "DERIVED"
-    assert step["provenance"]
-
-
-def test_proposed_step_requires_human_approval():
-    step = {"id": "step-1", "origin": "PROPOSED", "human_approved": False}
-    assert step["origin"] == "PROPOSED"
-    assert step["human_approved"] is False
-
-
-def test_proposed_cannot_be_reclassified_as_derived():
-    step = {"id": "step-1", "origin": "PROPOSED"}
-    assert step["origin"] != "DERIVED"
-
-
-def test_unresolved_step_is_not_executable():
-    step = {"id": "step-1", "origin": "UNRESOLVED", "executable": False}
-    assert step["origin"] == "UNRESOLVED"
-    assert step["executable"] is False
-
-
-def test_unresolved_requires_blocked_plan():
-    plan = {
-        "status": "BLOCKED",
-        "unresolved_decisions": [{"id": "decision-1", "origin": "UNRESOLVED"}],
-    }
-    assert plan["status"] == "BLOCKED"
-
-
-def test_blocked_plan_cannot_be_ready_for_approval():
-    plan = {"status": "BLOCKED", "blockers": ["unresolved-decision"]}
-    assert plan["status"] != "READY_FOR_APPROVAL"
-
-
-def test_proposed_plan_requires_approval():
-    plan = {
-        "status": "READY_FOR_APPROVAL",
-        "approval": {"required": True, "status": "PENDING", "authority_scope": "HUMAN"},
-        "steps": [{"id": "step-1", "origin": "PROPOSED"}],
-    }
+    assert proposed
+    assert all(step["origin"] != "DERIVED" for step in proposed)
     assert plan["approval"]["required"] is True
-    assert plan["approval"]["status"] == "PENDING"
-
-
-def test_transformer_cannot_synthesize_human_approval():
-    plan = {"approval": {"required": True, "status": "PENDING", "authority_scope": "HUMAN"}}
     assert plan["approval"]["status"] != "APPROVED"
 
 
-def test_provenance_requires_source_specification():
-    provenance = {
-        "source_specification_id": "spec-1",
-        "source_specification_element_id": "element-1",
-        "build_plan_element_id": "step-1",
-        "origin": "DERIVED",
-    }
-    assert provenance["source_specification_id"]
-    assert provenance["source_specification_element_id"]
-    assert provenance["build_plan_element_id"]
-    assert provenance["origin"] in ALLOWED_ORIGINS
+def test_unresolved_decision_is_preserved_and_blocks_plan():
+    specification = _valid_specification(
+        unresolved_decisions=[
+            {
+                "id": "decision-001",
+                "statement": "Deployment target is not decided",
+                "origin": "UNRESOLVED",
+            }
+        ]
+    )
+
+    plan = _transformer()(specification)
+
+    assert any(
+        decision.get("id") == "decision-001"
+        and decision.get("origin") == "UNRESOLVED"
+        for decision in plan["unresolved_decisions"]
+    )
+    assert plan["status"] == "BLOCKED"
+    assert plan["blockers"]
+    assert plan["approval"]["status"] != "APPROVED"
 
 
-def test_determinism_contract_is_explicit():
-    determinism = {"canonicalization": "required", "ordering": "stable", "identity_rule": "stable"}
-    assert determinism["canonicalization"] == "required"
-    assert determinism["ordering"] == "stable"
-    assert determinism["identity_rule"] == "stable"
+def test_blocked_plan_cannot_be_ready_or_execution_authorized():
+    specification = _valid_specification(
+        unresolved_decisions=[
+            {"id": "decision-001", "statement": "Unknown", "origin": "UNRESOLVED"}
+        ]
+    )
+    plan = _transformer()(specification)
+
+    assert plan["status"] == "BLOCKED"
+    assert plan["status"] != "READY_FOR_APPROVAL"
+    assert plan["approval"]["status"] != "APPROVED"
+    for step in plan["steps"]:
+        assert step["execution_state"] not in {"AUTHORIZED", "EXECUTING", "EXECUTED"}
 
 
-def test_step_identity_must_be_stable():
-    step_a = {"id": "step-spec-1-01", "sequence": 1}
-    step_b = {"id": "step-spec-1-01", "sequence": 1}
-    assert step_a["id"] == step_b["id"]
-    assert step_a["sequence"] == step_b["sequence"]
+def test_invalid_specification_is_rejected_fail_closed():
+    invalid = _valid_specification(status="INVALID")
+
+    with pytest.raises((ValueError, TypeError)):
+        _transformer()(invalid)
 
 
-def test_step_ordering_must_be_stable():
-    steps = [{"id": "step-1", "sequence": 1}, {"id": "step-2", "sequence": 2}]
-    assert [step["sequence"] for step in steps] == [1, 2]
+def test_missing_specification_is_rejected_fail_closed():
+    invalid = deepcopy(_valid_specification())
+    del invalid["specification_id"]
+
+    with pytest.raises((ValueError, TypeError, KeyError)):
+        _transformer()(invalid)
 
 
-def test_invalid_specification_must_be_rejected():
-    invalid_specification = {"status": "INVALID"}
-    assert invalid_specification["status"] != "VALID"
+def test_protected_decision_without_authority_blocks_plan():
+    specification = _valid_specification(
+        unresolved_decisions=[
+            {
+                "id": "decision-protected",
+                "statement": "Protected authority decision",
+                "origin": "UNRESOLVED",
+                "protected": True,
+            }
+        ],
+        authority={"scope": "none"},
+    )
+
+    plan = _transformer()(specification)
+
+    assert plan["status"] == "BLOCKED"
+    assert plan["blockers"]
+    assert plan["approval"]["status"] != "APPROVED"
 
 
-def test_generation_has_no_execution_side_effect():
-    execution_performed = False
-    assert execution_performed is False
+def test_same_canonical_input_produces_identical_plan():
+    specification = _valid_specification()
+    first = _transformer()(deepcopy(specification))
+    second = _transformer()(deepcopy(specification))
+
+    assert _canonical(first) == _canonical(second)
 
 
-def test_transformer_is_not_implemented_yet():
-    with pytest.raises(NotImplementedError):
-        validate_build_plan_contract({})
+def test_step_ids_and_ordering_are_stable():
+    specification = _valid_specification(
+        requirements=[
+            {
+                "id": "req-001",
+                "statement": "First requirement",
+                "source_element_id": "intent-element-001",
+                "origin": "DERIVED",
+            },
+            {
+                "id": "req-002",
+                "statement": "Second requirement",
+                "source_element_id": "intent-element-002",
+                "origin": "DERIVED",
+            },
+        ]
+    )
+
+    first = _transformer()(deepcopy(specification))
+    second = _transformer()(deepcopy(specification))
+
+    first_identity = [(step["id"], step["sequence"]) for step in first["steps"]]
+    second_identity = [(step["id"], step["sequence"]) for step in second["steps"]]
+    assert first_identity == second_identity
+    assert [sequence for _, sequence in first_identity] == sorted(
+        sequence for _, sequence in first_identity
+    )
+
+
+def test_generation_has_no_execution_side_effects(monkeypatch):
+    execution_calls: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
+
+    def forbidden_execution(*args: Any, **kwargs: Any) -> None:
+        execution_calls.append((args, kwargs))
+        raise AssertionError("BuildPlan generation attempted execution")
+
+    monkeypatch.setattr("subprocess.run", forbidden_execution)
+    monkeypatch.setattr("subprocess.Popen", forbidden_execution)
+
+    _transformer()(_valid_specification())
+
+    assert execution_calls == []
