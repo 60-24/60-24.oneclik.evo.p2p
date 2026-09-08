@@ -1,0 +1,21 @@
+name: SES-011 BuildPlan Contract
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install pytest
+        run: python -m pip install --upgrade pytest
+      - name: Run SES-011 contract tests
+        run: python -m pytest sessions/SES-011/test_build_plan_contract.py -v
