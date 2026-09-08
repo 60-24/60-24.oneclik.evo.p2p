@@ -1,0 +1,124 @@
+Gathered additional information
+
+{
+  "ability_name": "repo-overview"
+}
+
+Get data from /repos/60-24/60-24.oneclik.evo.p2p/contents
+
+{
+  "endpoint": "/repos/60-24/60-24.oneclik.evo.p2p/contents",
+  "page": 1,
+  "perPage": 100,
+  "repo": "60-24/60-24.oneclik.evo.p2p",
+  "task": "list top-level files and directories in the repository root",
+  "userQuery": "List top-level files and directories in the repository root for 60-24/60-24.oneclik.evo.p2p"
+}
+
+View file README.md
+
+View directory src
+
+{
+  "endpoint": "/repos/60-24/60-24.oneclik.evo.p2p/contents/src",
+  "page": 1,
+  "perPage": 100,
+  "repo": "60-24/60-24.oneclik.evo.p2p",
+  "task": "list top-level files in src directory",
+  "userQuery": "List files and directories in src directory"
+}
+
+View file src/README.md
+
+View directory tests
+
+{
+  "endpoint": "/repos/60-24/60-24.oneclik.evo.p2p/contents/tests",
+  "page": 1,
+  "perPage": 100,
+  "repo": "60-24/60-24.oneclik.evo.p2p",
+  "task": "list top-level files in tests directory",
+  "userQuery": "List files and directories in tests directory"
+}
+
+View file tests/README.md
+
+Results of /repos/60-24/60-24.oneclik.evo.p2p/contents/constitution and 2 other tool calls
+View directory constitution
+
+{
+  "endpoint": "/repos/60-24/60-24.oneclik.evo.p2p/contents/constitution",
+  "page": 1,
+  "perPage": 100,
+  "repo": "60-24/60-24.oneclik.evo.p2p",
+  "task": "list files in constitution directory",
+  "userQuery": "List files in constitution directory"
+}
+
+View directory architecture
+
+{
+  "endpoint": "/repos/60-24/60-24.oneclik.evo.p2p/contents/architecture",
+  "page": 1,
+  "perPage": 100,
+  "repo": "60-24/60-24.oneclik.evo.p2p",
+  "task": "list files in architecture directory",
+  "userQuery": "List files in architecture directory"
+}
+
+View directory ontology
+
+{
+  "endpoint": "/repos/60-24/60-24.oneclik.evo.p2p/contents/ontology",
+  "page": 1,
+  "perPage": 100,
+  "repo": "60-24/60-24.oneclik.evo.p2p",
+  "task": "list files in ontology directory",
+  "userQuery": "List files in ontology directory"
+}
+
+What this is
+
+A governance-first Python project for a P2P "OneClick Evo" system that combines constitutional/architectural documentation, ontology and agent guidance with a codebase scaffold under src. It appears aimed at teams building a decentralized/peer-to-peer system where engineering process, autonomy zones, and trust/ontology are first-class artifacts.
+Stack
+
+    Language(s): Python (primary)
+    Framework / runtime: Python 3.x (no application framework or runtime declared in repository files)
+    Znaczące biblioteki: Żaden wyraźnie nie zadeklarowany w repozytorium (brak pyproject.toml lub requirements.txt znaleziony przy korzeniu repo). Lista zależności musi zostać dodana do plików manifestu, aby wybory runtime / biblioteki były wyraźne.
+
+Jak jest zorganizowany
+Kod
+
+README.md                             high-level repo title
+.env.example                          environment example
+.devcontainer/                         devcontainer configuration (editor/dev environment)
+.github/                               CI/issue/PR automation (boilerplate)
+AGENTS.md                              agent guidance / design notes
+P2P_60-24_ENGINEERING_CONSTITUTION_v1.0.md  engineering constitution (governance)
+architecture/README.md                 architecture overview and planned ADRs
+constitution/README.md                 governance & constitutional docs
+ontology/README.md                     ontology notes (domain model / ontology layer)
+docs/                                  supporting documentation (doc pages)
+sessions/                              session artifacts (usage / traces / examples)
+src/README.md                          source code folder (implementation placeholder)
+tests/README.md                        tests guidance / test strategy
+Info neo4j                             note/file about Neo4j (integration hint)
+chat-Decentralized Computing Network.txt  design/chat notes
+Qwen_markdown_20260420_...md           ad-hoc notes / experiments
+
+Jak to pasuje do siebie: Repozytorium jest skonstruowane jako połączony projekt + przestrzeń robocza wdrożenia. Dokumenty architektoniczne i konstytucyjne (architektura/, konstytucja/, P2P_60-24_...md) określają ograniczenia i procesy decyzyjne, których musi nastąpić wdrożenie w src/. Folder ontologii/ definiuje modele domen i terminologię, aby kierować zarówno dokumentami, jak i kodem. Testy / zawiera strategię testowania; konkretny kod testowy i manifesty zależności nie są obecne u podstaw, więc okablowanie runtime (jak działa src, jakie usługi lub CLI istnieją) nie można odkryć z obecnych obecnie plików.
+Jak go uruchomić
+
+Nie ma wyraźnych instrukcji kompilacji lub uruchomienia i braku zależności w korzeniu repozytorium (README.md zawiera tylko tytuł, a ja nie znalazłem pyproject.toml, requirements.txt lub Makefile). Najkrótsze kroki eksploracyjne:
+
+    Sklonuj repo i sprawdź src/, aby znaleźć punkt wejścia lub układ pakietu.
+    Jeśli obecne są testy lub pakiety Pythona, wypróbuj konwencjonalny test:
+        Python -m pytest
+    Jeśli wymagane są zależności, utwórz virtualenv i dodaj wymagane pakiety po ich zidentyfikowaniu w src lub zapytaj opiekunów o zamierzony manifest.
+
+Ponieważ polecenia run / test nie są deklarowane, repozytorium służy obecnie jako dokumentacja + rusztowanie; manifest (wymagania lub pyproject) i instrukcje uruchamiania README byłyby potrzebne do wytworzenia powtarzalnych przebiegów.
+Spróbuj zapytać
+
+    Gdzie znajduje się główny punkt wejścia aplikacji pod src/ (moduł/nazwa pliku) i czy spodziewa się, że będzie uruchamiany jako usługa, CLI lub biblioteka?
+    Czy istnieje zamierzony manifest zależności (pyproject.toml lub requirements.txt), który możesz dodać, abyśmy mogli zainstalować i uruchomić kod w sposób powtarzalny?
+    Które z zasad konstytucji/ lub P2P_60-24_INŻYNIERII_KONSTYTUCJI_v1.0.md są uważane za "zamrożone" vs projekt, a czy istnieją ADR w architekturze / te odniesienia do konkretnych decyzji na poziomie kodu w src/?
