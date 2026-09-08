@@ -108,6 +108,11 @@ def transform_specification_to_build_plan(specification: dict[str, Any]) -> dict
     authority_scope = (specification.get("authority") or {}).get("scope")
 
     blockers: list[dict[str, Any]] = []
+    if not specification["provenance"]:
+        blockers.append({
+            "type": "MISSING_PROVENANCE",
+            "reason": "mandatory Specification provenance is empty",
+        })
     if unresolved:
         blockers.append({
             "type": "UNRESOLVED_DECISION",
