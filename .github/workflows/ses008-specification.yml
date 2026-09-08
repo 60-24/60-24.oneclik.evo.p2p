@@ -1,0 +1,30 @@
+name: SES-008 Specification Verification
+
+on:
+  push:
+    paths:
+      - 'sessions/SES-008/**'
+      - 'sessions/SES-007/**'
+      - '.github/workflows/ses008-specification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sessions/SES-008
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile specification.py test_specification.py
+      - name: Unit tests
+        run: python -m unittest test_specification.py -v
