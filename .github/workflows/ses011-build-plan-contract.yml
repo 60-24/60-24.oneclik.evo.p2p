@@ -25,3 +25,5 @@ jobs:
         run: python -m pytest sessions/SES-014/test_human_approval_boundary.py -v
       - name: Run SES-015 approval-to-plan binding test
         run: python -m pytest sessions/SES-015/test_approval_plan_binding.py -v
+
+# SES-015 CI evidence gate: approval must bind to the exact BuildPlan ID.
