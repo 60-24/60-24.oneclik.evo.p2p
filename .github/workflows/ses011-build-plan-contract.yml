@@ -19,3 +19,5 @@ jobs:
         run: python -m pip install --upgrade pytest
       - name: Run SES-011 contract tests
         run: python -m pytest sessions/SES-011/test_build_plan_contract.py -v
+      - name: Run SES-013 provenance boundary test
+        run: python -m pytest sessions/SES-013/test_build_plan_provenance.py -v
