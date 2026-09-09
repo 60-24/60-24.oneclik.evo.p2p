@@ -25,5 +25,7 @@ jobs:
         run: python -m pytest sessions/SES-014/test_human_approval_boundary.py -v
       - name: Run SES-015 approval-to-plan binding test
         run: python -m pytest sessions/SES-015/test_approval_plan_binding.py -v
+      - name: Run SES-017 execution-request contract test
+        run: python -m pytest sessions/SES-017/test_execution_request_contract.py -v
 
-# SES-015 CI evidence gate: approval must bind to the exact BuildPlan ID.
+# SES-017 CI evidence gate: authorization must produce an explicit execution request without execution.
