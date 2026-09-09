@@ -10,7 +10,6 @@ from copy import deepcopy
 from typing import Any
 
 
-
 def authorize_build_plan(
     plan: dict[str, Any], human_approval: dict[str, Any] | None
 ) -> dict[str, Any]:
@@ -30,6 +29,9 @@ def authorize_build_plan(
 
     if not isinstance(human_approval, dict) or human_approval.get("approved") is not True:
         raise PermissionError("Explicit human approval was not granted")
+
+    if human_approval.get("build_plan_id") != plan.get("build_plan_id"):
+        raise PermissionError("Human approval does not match the BuildPlan")
 
     authorized = deepcopy(plan)
     authorized["approval"] = {
