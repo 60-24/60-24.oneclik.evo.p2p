@@ -27,5 +27,7 @@ jobs:
         run: python -m pytest sessions/SES-015/test_approval_plan_binding.py -v
       - name: Run SES-017 execution-request contract test
         run: python -m pytest sessions/SES-017/test_execution_request_contract.py -v
+      - name: Run SES-018 execution-dispatch contract test
+        run: python -m pytest sessions/SES-018/test_execution_dispatch_contract.py -v
 
-# SES-017 CI evidence gate: authorization must produce an explicit execution request without execution.
+# SES-018 CI evidence gate: an execution request may become an explicit execution attempt, never an implicit execution.
