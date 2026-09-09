@@ -23,3 +23,5 @@ jobs:
         run: python -m pytest sessions/SES-013/test_build_plan_provenance.py -v
       - name: Run SES-014 human approval boundary test
         run: python -m pytest sessions/SES-014/test_human_approval_boundary.py -v
+      - name: Run SES-015 approval-to-plan binding test
+        run: python -m pytest sessions/SES-015/test_approval_plan_binding.py -v
