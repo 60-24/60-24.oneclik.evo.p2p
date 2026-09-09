@@ -26,6 +26,10 @@ def authorize_build_plan(
     if not isinstance(human_approval, dict) or human_approval.get("approved") is not True:
         raise PermissionError("Explicit human approval was not granted")
 
+    approved_build_plan_id = human_approval.get("build_plan_id")
+    if approved_build_plan_id != plan.get("build_plan_id"):
+        raise PermissionError("Human approval is bound to a different BuildPlan")
+
     authorized = deepcopy(plan)
     authorized["approval"] = {
         **approval,
