@@ -33,7 +33,10 @@ def _valid_specification(spec_id: str = "spec-015-001") -> dict[str, Any]:
                 "id": "req-015-001",
                 "statement": "Create the requested component",
                 "source_element_id": "intent-element-015-001",
-                "origin": "DERIVED",
+                # PROPOSED forces the generated BuildPlan into the
+                # READY_FOR_APPROVAL state without introducing a new
+                # architectural decision into SES-015.
+                "origin": "PROPOSED",
             }
         ],
         "constraints": [],
@@ -47,7 +50,7 @@ def _valid_specification(spec_id: str = "spec-015-001") -> dict[str, Any]:
                 "source_intent_id": "intent-015-001",
                 "source_element_id": "intent-element-015-001",
                 "specification_element_id": "req-015-001",
-                "origin": "DERIVED",
+                "origin": "PROPOSED",
             }
         ],
         "authority": {"scope": "human-approved"},
@@ -76,11 +79,9 @@ def test_approval_for_different_build_plan_cannot_authorize_execution():
     other_plan = transform(_valid_specification("spec-015-B"))
 
     assert plan["build_plan_id"] != other_plan["build_plan_id"]
-    assert plan["status"] == "VALIDATED"
-    assert other_plan["status"] == "VALIDATED"
+    assert plan["status"] == "READY_FOR_APPROVAL"
+    assert other_plan["status"] == "READY_FOR_APPROVAL"
 
-    # The current SES-014 seam expects explicit approval but has no contract
-    # yet requiring the approval record to identify the exact BuildPlan.
     human_approval_for_other_plan = {
         "approved": True,
         "build_plan_id": other_plan["build_plan_id"],
@@ -89,5 +90,7 @@ def test_approval_for_different_build_plan_cannot_authorize_execution():
 
     authorize = _authorizer()
 
-    with pytest.raises((PermissionError, ValueError)):
+    # The rejection must be caused by the approval/BuildPlan identity
+    # mismatch, not by the plan being in an ineligible lifecycle state.
+    with pytest.raises((PermissionError, ValueError), match="BuildPlan"):
         authorize(plan, human_approval_for_other_plan)
