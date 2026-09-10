@@ -33,5 +33,7 @@ jobs:
         run: python -m pytest sessions/SES-019/test_execution_result_contract.py -v
       - name: Run SES-020 execution-effect boundary contract test
         run: python -m pytest sessions/SES-020/test_execution_effect_contract.py -v
+      - name: Run SES-021 effect authorization binding RED contract test
+        run: python -m pytest sessions/SES-021/test_execution_effect_authorization_binding.py -v
 
-# SES-020 CI evidence gate: an execution result does not implicitly authorize or perform an execution effect.
+# SES-021 TDD gate: effect authorization must bind to the same build_plan_id as the execution result.
