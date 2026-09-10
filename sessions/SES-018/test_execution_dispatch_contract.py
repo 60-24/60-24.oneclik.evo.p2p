@@ -1,18 +1,22 @@
 """SES-018 — TDD contract for Execution Request -> Execution Attempt.
 
-The implementation is intentionally absent at the RED stage.
+The implementation is loaded from the canonical SES-018 session folder.
 This contract defines the dispatch seam without performing execution.
 """
 
-import importlib
+import importlib.util
+from pathlib import Path
 
 
-MODULE = "sessions.SES_018.execution_dispatch"
+MODULE_PATH = Path(__file__).with_name("execution_dispatch.py")
 FACTORY = "create_execution_attempt"
 
 
 def _factory():
-    module = importlib.import_module(MODULE)
+    spec = importlib.util.spec_from_file_location("ses018_execution_dispatch", MODULE_PATH)
+    assert spec is not None and spec.loader is not None, "RED: execution-dispatch seam is unavailable"
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     factory = getattr(module, FACTORY, None)
     assert callable(factory), "RED: execution-dispatch seam is unavailable"
     return factory
