@@ -1,6 +1,17 @@
+"""SES-020 — TDD contract for Execution Result -> Execution Effect.
+
+The contract defines the smallest explicit effect seam.
+No real effect or side effect is permitted.
+"""
+
+import importlib.util
+from pathlib import Path
+
 import pytest
 
-from sessions.SES_020.execution_effect import create_execution_effect
+
+MODULE_PATH = Path(__file__).with_name("execution_effect.py")
+FACTORY = "create_execution_effect"
 
 
 VALID_RESULT = {
@@ -14,12 +25,22 @@ VALID_RESULT = {
 VALID_AUTHORIZATION = {"status": "AUTHORIZED"}
 
 
+def _factory():
+    spec = importlib.util.spec_from_file_location("ses020_execution_effect", MODULE_PATH)
+    assert spec is not None and spec.loader is not None, "RED: execution-effect seam is unavailable"
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    factory = getattr(module, FACTORY, None)
+    assert callable(factory), "RED: execution-effect seam is unavailable"
+    return factory
+
+
 def test_execution_effect_seam_exists_and_is_callable():
-    assert callable(create_execution_effect)
+    assert callable(_factory())
 
 
 def test_succeeded_result_with_effect_authorization_creates_effect_record():
-    effect = create_execution_effect(
+    effect = _factory()(
         VALID_RESULT,
         execution_effect_id="effect-020-001",
         effect_authorization=VALID_AUTHORIZATION,
@@ -35,7 +56,7 @@ def test_succeeded_result_with_effect_authorization_creates_effect_record():
 
 def test_result_without_effect_authorization_is_rejected():
     with pytest.raises(PermissionError):
-        create_execution_effect(
+        _factory()(
             VALID_RESULT,
             execution_effect_id="effect-020-002",
             effect_authorization={},
@@ -46,7 +67,7 @@ def test_failed_result_cannot_become_execution_effect():
     failed_result = {**VALID_RESULT, "outcome": "FAILED"}
 
     with pytest.raises(PermissionError):
-        create_execution_effect(
+        _factory()(
             failed_result,
             execution_effect_id="effect-020-003",
             effect_authorization=VALID_AUTHORIZATION,
@@ -55,7 +76,7 @@ def test_failed_result_cannot_become_execution_effect():
 
 def test_invalid_result_is_rejected():
     with pytest.raises(PermissionError):
-        create_execution_effect(
+        _factory()(
             {},
             execution_effect_id="effect-020-004",
             effect_authorization=VALID_AUTHORIZATION,
@@ -63,7 +84,7 @@ def test_invalid_result_is_rejected():
 
 
 def test_build_plan_identity_is_preserved():
-    effect = create_execution_effect(
+    effect = _factory()(
         VALID_RESULT,
         execution_effect_id="effect-020-005",
         effect_authorization=VALID_AUTHORIZATION,
@@ -74,7 +95,7 @@ def test_build_plan_identity_is_preserved():
 
 def test_empty_effect_id_is_rejected():
     with pytest.raises(PermissionError):
-        create_execution_effect(
+        _factory()(
             VALID_RESULT,
             execution_effect_id="",
             effect_authorization=VALID_AUTHORIZATION,
