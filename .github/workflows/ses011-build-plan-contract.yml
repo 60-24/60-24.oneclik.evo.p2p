@@ -29,5 +29,7 @@ jobs:
         run: python -m pytest sessions/SES-017/test_execution_request_contract.py -v
       - name: Run SES-018 execution-dispatch contract test
         run: python -m pytest sessions/SES-018/test_execution_dispatch_contract.py -v
+      - name: Run SES-019 execution-result contract test
+        run: python -m pytest sessions/SES-019/test_execution_result_contract.py -v
 
-# SES-018 CI evidence gate: an execution request may become an explicit execution attempt, never an implicit execution.
+# SES-019 CI evidence gate: an execution attempt may produce an explicit execution result, never an implicit execution.
