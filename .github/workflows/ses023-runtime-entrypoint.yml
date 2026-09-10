@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   contract:
     runs-on: ubuntu-latest
@@ -17,5 +20,5 @@ jobs:
           python-version: "3.x"
       - name: Install pytest
         run: python -m pip install --upgrade pytest
-      - name: Run SES-023 RED contract test
+      - name: Run SES-023 contract tests
         run: python -m pytest sessions/SES-023/test_runtime_entrypoint_contract.py -v
