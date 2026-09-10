@@ -35,5 +35,7 @@ jobs:
         run: python -m pytest sessions/SES-020/test_execution_effect_contract.py -v
       - name: Run SES-021 effect authorization binding RED contract test
         run: python -m pytest sessions/SES-021/test_execution_effect_authorization_binding.py -v
+      - name: Run SES-022 authorization provenance contract test
+        run: python -m pytest sessions/SES-022/test_execution_effect_authorization_provenance.py -v
 
-# SES-021 TDD gate: effect authorization must bind to the same build_plan_id as the execution result.
+# SES-022 TDD gate: execution-effect provenance must preserve explicit human authorization and bind to the same build_plan_id.
