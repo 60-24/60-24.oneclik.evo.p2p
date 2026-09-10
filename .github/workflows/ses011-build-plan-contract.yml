@@ -31,5 +31,7 @@ jobs:
         run: python -m pytest sessions/SES-018/test_execution_dispatch_contract.py -v
       - name: Run SES-019 execution-result contract test
         run: python -m pytest sessions/SES-019/test_execution_result_contract.py -v
+      - name: Run SES-020 execution-effect boundary contract test
+        run: python -m pytest sessions/SES-020/test_execution_effect_contract.py -v
 
-# SES-019 CI evidence gate: an execution attempt may produce an explicit execution result, never an implicit execution.
+# SES-020 CI evidence gate: an execution result does not implicitly authorize or perform an execution effect.
