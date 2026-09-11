@@ -39,5 +39,7 @@ jobs:
         run: python -m pytest sessions/SES-022/test_execution_effect_authorization_provenance.py -v
       - name: Run SES-030 execution-effect verification contract test
         run: python -m pytest sessions/SES-030/test_execution_effect_verification.py -v
+      - name: Run SES-031 verification-to-delivery contract test
+        run: python -m pytest sessions/SES-031/test_verification_delivery_contract.py -v
 
-# SES-030 TDD gate: verification must certify only a succeeded, explicitly human-authorized execution effect on a stable provenance basis.
+# SES-031 TDD gate: delivery certifies only a verified internal result and a non-empty artifact set; it does not claim external-world delivery.
