@@ -13,5 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+      - name: Install test runner
+        run: python -m pip install pytest
       - name: Run SES-032 integration test
         run: python -m pytest -q sessions/SES-032/test_system_builder_e2e.py
