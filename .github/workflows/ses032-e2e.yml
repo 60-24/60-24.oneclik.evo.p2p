@@ -1,0 +1,17 @@
+name: SES-032 E2E integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run SES-032 integration test
+        run: python -m pytest -q sessions/SES-032/test_system_builder_e2e.py
