@@ -69,6 +69,28 @@ def test_other_statuses_are_unchanged():
     assert validate(_intent(protected_decisions=["Change governance rule"]))["status"] == "PROTECTED"
 
 
+def test_unknown_authority_is_not_valid():
+    validate = _validate()
+    for authority in ("alien", "", None, 123):
+        result = validate(_intent(authority=authority))
+        assert result["status"] != "VALID", authority
+        assert result["status"] == "INCOMPLETE", authority
+        assert "authority must be human or system" in result["validation"]["reasons"]
+
+
+def test_known_authority_remains_valid():
+    validate = _validate()
+    for authority in ("human", "system"):
+        assert validate(_intent(authority=authority))["status"] == "VALID"
+
+
+def test_unknown_authority_does_not_mask_protected_decisions():
+    validate = _validate()
+    result = validate(_intent(authority="alien", protected_decisions=["Change governance rule"]))
+    assert result["status"] == "PROTECTED"
+    assert "authority must be human or system" in result["validation"]["reasons"]
+
+
 def test_result_shape_is_unchanged():
     validate = _validate()
     result = validate(_intent(open_questions=["Should execution be local or remote?"]))

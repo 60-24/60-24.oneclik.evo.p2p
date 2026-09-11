@@ -74,7 +74,8 @@ def validate(raw: dict[str, Any]) -> dict[str, Any]:
 
     if not envelope["objective"]:
         reasons.append("objective is missing")
-    if envelope["authority"] not in ("human", "system"):
+    authority_valid = envelope["authority"] in ("human", "system")
+    if not authority_valid:
         reasons.append("authority must be human or system")
     if envelope["protected_decisions"]:
         envelope["status"] = "PROTECTED"
@@ -88,6 +89,8 @@ def validate(raw: dict[str, Any]) -> dict[str, Any]:
     elif not envelope["objective"] or not envelope["requirements"]:
         envelope["status"] = "INCOMPLETE"
         reasons.append("material objective and at least one requirement are required")
+    elif not authority_valid:
+        envelope["status"] = "INCOMPLETE"
 
     elements = []
     for field in ("requirements", "constraints", "assumptions", "optional_information", "open_questions", "protected_decisions"):
