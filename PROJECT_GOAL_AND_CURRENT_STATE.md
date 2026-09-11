@@ -1,6 +1,6 @@
 # System Builder — Aktualny stan, cel pośredni i cel ostateczny
 
-**Data:** 2026-09-11  
+**Data:** 2026-09-12  
 **Status:** ACTIVE / SOURCE OF TRUTH  
 **Repozytorium:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`
@@ -11,7 +11,7 @@ Ten plik zapisuje aktualny stan projektu, najbliższy cel, cel ostateczny oraz z
 
 Repozytorium jest Source of Truth. Chat dostarcza kontekstu, ale stan projektu, dowody i decyzje mają być zapisane w repozytorium.
 
-## 2. Aktualny stan po pełnym audycie 2026-09-11
+## 2. Aktualny stan po pełnym audycie i E2E
 
 Projekt ma zweryfikowane kolejne granice od budowania planu do dostarczenia wewnętrznego manifestu:
 
@@ -21,7 +21,20 @@ SES-030 ustanowił `EXECUTION_EFFECT → VERIFICATION`. `VERIFIED` oznacza wył�
 
 SES-031 ustanowił `VERIFICATION → DELIVERY`, gdzie `DELIVERY` oznacza obecnie **wewnętrzny, odtwarzalny manifest dostarczenia**, a nie transmisję do systemu zewnętrznego.
 
-SES-031 jest potwierdzone przez CI: run `34644669445`, job `103412459713`; wszystkie uruchomione kontrakty SES-011, SES-013–022, SES-030 i SES-031 zakończyły się sukcesem.
+SES-032 ustanowił rzeczywisty test end-to-end łączący istniejące elementy w jeden spójny przepływ od Intent do Delivery Manifest. Test obejmuje również rzeczywistą granicę Human Approval oraz propagację `authorization_source` do `EXECUTION_EFFECT`.
+
+Aktualny commit `main`:
+
+`c4753b34f864e84e5831ab7f1924955613c6cf90` — `fix(SES-021): propagate optional authorization provenance`
+
+Na tym commicie SES-032 E2E jest potwierdzone przez GitHub Actions:
+
+- workflow/job: `e2e`
+- run: `34658589204`
+- check: `103456173236`
+- status: `completed / success`
+
+Na tym samym commicie wszystkie wykryte checki GitHub Actions zakończyły się sukcesem. Poprawka SES-021 zachowuje kompatybilność z wcześniejszymi kontraktami.
 
 Minimalny canonical runtime pozostaje:
 
@@ -31,23 +44,21 @@ Canonical implementation runtime znajduje się w `src/runtime/`.
 
 ## 3. Stan celu pośredniego C0
 
-C0 — Canonical Runtime Verification — jest osiągnięte na poziomie ustanowionych kontraktów runtime i regresji SES-023–028, ale pełna integracja z późniejszym cyklem System Buildera wymaga osobnego dowodu end-to-end.
+C0 — Canonical Runtime Verification — jest osiągnięte na poziomie ustanowionych kontraktów runtime i regresji SES-023–028.
+
+Pełna integracja późniejszego cyklu System Buildera ma teraz rzeczywisty dowód E2E w SES-032. Nie należy ponownie otwierać C0 bez konkretnej, wykazanej luki funkcjonalnej.
 
 Nie będziemy sztucznie rozszerzać C0 ani tworzyć kolejnych sesji tylko po to, aby je numerować.
 
 ## 4. Cel najbliższy
 
-### Integracja istniejącego łańcucha do DELIVERY
+### Ocena najmniejszej rzeczywistej luki prowadzącej do Beta
 
-Najbliższy cel jest jeden:
+Cel integracyjny `INTENT → ... → VERIFICATION → DELIVERY MANIFEST` jest **zamknięty dowodem E2E**.
 
-`INTENT → ... → VERIFICATION → DELIVERY MANIFEST`
+Następny krok nie polega na tworzeniu kolejnej abstrakcyjnej granicy. Należy ponownie przeanalizować cały przepływ względem kryterium funkcjonalnej Beta i znaleźć **najmniejszą rzeczywistą lukę**, która uniemożliwia uznanie System Buildera za użyteczny Beta.
 
-jako jeden spójny, możliwy do odtworzenia przepływ.
-
-Najpierw należy sprawdzić, czy taki przepływ już istnieje. Jeżeli istnieje — udowodnić go. Jeżeli nie istnieje — znaleźć najmniejszą rzeczywistą lukę i zamknąć ją minimalną zmianą.
-
-**Nie tworzyć SES-033 ani kolejnej granicy przed zamknięciem tego celu.**
+Jeżeli luka nie istnieje na poziomie obecnego celu — nie dodawać kodu. Jeżeli istnieje — zamknąć ją minimalną zmianą, testem i dowodem CI.
 
 ## 5. Najważniejsze błędy, których nie powtarzamy
 
