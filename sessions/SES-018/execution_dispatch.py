@@ -5,8 +5,21 @@ produce a result, or perform external side effects.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from copy import deepcopy
 from typing import Any
+
+
+def _stable_attempt_id(execution_request: dict[str, Any]) -> str:
+    payload = {
+        "build_plan_id": execution_request["build_plan_id"],
+        "source": execution_request["source"],
+        "execution_authorization_status": execution_request["execution_authorization_status"],
+    }
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+    return f"ATTEMPT-{digest}"
 
 
 def create_execution_attempt(execution_request: dict[str, Any]) -> dict[str, Any]:
@@ -31,15 +44,10 @@ def create_execution_attempt(execution_request: dict[str, Any]) -> dict[str, Any
     if not build_plan_id or plan.get("build_plan_id") != build_plan_id:
         raise PermissionError("Execution request and BuildPlan identity must match")
 
-    authorization = plan.get("execution_authorization")
-    if not isinstance(authorization, dict):
-        raise PermissionError("BuildPlan execution authorization is required")
-    if authorization.get("status") != "AUTHORIZED":
-        raise PermissionError("BuildPlan is not execution-authorized")
-
     return {
         "status": "EXECUTION_ATTEMPT",
         "source": "EXECUTION_REQUEST",
+        "execution_attempt_id": _stable_attempt_id(execution_request),
         "build_plan_id": build_plan_id,
         "request_status": execution_request["status"],
         "request": deepcopy(execution_request),
