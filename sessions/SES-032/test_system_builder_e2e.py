@@ -14,6 +14,8 @@ def load_module(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
+    assert module
+    assert spec.loader
     spec.loader.exec_module(module)
     return module
 
@@ -28,6 +30,7 @@ execution_result = load_module("ses019", ROOT / "sessions/SES-019/execution_resu
 execution_effect = load_module("ses021", ROOT / "sessions/SES-021/execution_effect.py")
 verification = load_module("ses030", ROOT / "sessions/SES-030/execution_effect_verification.py")
 delivery = load_module("ses031", ROOT / "sessions/SES-031/delivery.py")
+local_executor = load_module("local_executor", ROOT / "src/execution/local_executor.py")
 
 
 def _valid_raw_intent() -> dict[str, object]:
@@ -103,7 +106,7 @@ def test_proposed_build_plan_requires_and_accepts_explicit_human_approval():
     assert "execution_effect" not in approved
 
 
-def test_minimal_full_chain_reaches_delivery_manifest():
+def test_minimal_full_chain_reaches_delivery_manifest_with_real_local_effect(tmp_path):
     spec = _proposed_specification()
     plan = build_plan.transform_specification_to_build_plan(spec)
     approved = authorization.authorize_build_plan(
@@ -123,13 +126,18 @@ def test_minimal_full_chain_reaches_delivery_manifest():
     assert attempt["status"] == "EXECUTION_ATTEMPT"
     assert attempt["build_plan_id"] == plan["build_plan_id"]
 
+    execution = local_executor.execute_build_plan(approved, tmp_path)
+    assert execution["status"] == "EXECUTED"
+    assert execution["artifacts"]
+    assert all(Path(item["path"]).exists() for item in execution["artifacts"])
+
     result = execution_result.create_execution_result(attempt, "SUCCEEDED")
     assert result["status"] == "EXECUTION_RESULT"
     assert result["execution_attempt_id"] == attempt["execution_attempt_id"]
 
     effect = execution_effect.create_execution_effect(
         result,
-        "effect-ses032-e2e",
+        execution["artifacts"][0]["artifact_id"],
         {
             "status": "AUTHORIZED",
             "build_plan_id": plan["build_plan_id"],
@@ -144,8 +152,10 @@ def test_minimal_full_chain_reaches_delivery_manifest():
     assert verified["status"] == "VERIFIED"
     assert verified["execution_effect_id"] == effect["execution_effect_id"]
 
-    manifest = delivery.create_delivery_manifest(verified, ["artifact-ses032-e2e"])
+    manifest = delivery.create_delivery_manifest(
+        verified, [item["artifact_id"] for item in execution["artifacts"]]
+    )
     assert manifest["status"] == "DELIVERED"
     assert manifest["source"] == "VERIFICATION"
     assert manifest["build_plan_id"] == plan["build_plan_id"]
-    assert manifest["artifact_ids"] == ["artifact-ses032-e2e"]
+    assert manifest["artifact_ids"] == [item["artifact_id"] for item in execution["artifacts"]]
