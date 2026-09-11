@@ -22,3 +22,5 @@ jobs:
         run: python -m pip install --upgrade pytest
       - name: Run SES-025 runtime flow contract tests
         run: python -m pytest sessions/SES-025/test_runtime_flow_contract.py -v
+      - name: Run SES-027 canonical runtime evidence proof
+        run: python -m pytest sessions/SES-027/test_runtime_evidence_contract.py -v
