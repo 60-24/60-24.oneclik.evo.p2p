@@ -15,6 +15,19 @@ FIELDS = (
 STATUSES = ("VALID", "INCOMPLETE", "AMBIGUOUS", "PROTECTED")
 LIST_FIELDS = FIELDS[3:9]
 
+# Whole-word disjunctions; "or" must not match "order", "storage" or "report".
+AMBIGUITY_WORDS = ("either", "or", "albo", "lub", "bądź")
+# Inflected forms are matched by stem, covering Polish declension.
+AMBIGUITY_STEMS = (
+    "alternativ", "interpretat", "ambigu",
+    "alternatyw", "interpretac", "niejednoznacz",
+)
+AMBIGUITY_PATTERN = re.compile(
+    r"\b(?:" + "|".join(AMBIGUITY_WORDS) + r")\b"
+    r"|\b(?:" + "|".join(AMBIGUITY_STEMS) + r")\w*",
+    re.IGNORECASE,
+)
+
 
 def _text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value).strip())
@@ -68,8 +81,7 @@ def validate(raw: dict[str, Any]) -> dict[str, Any]:
         reasons.append("protected decision requires human approval")
     elif envelope["open_questions"]:
         ambiguous = any(
-            any(token in q.lower() for token in ("either", "or", "alternative", "interpretation", "ambiguous"))
-            for q in envelope["open_questions"]
+            AMBIGUITY_PATTERN.search(q) for q in envelope["open_questions"]
         )
         envelope["status"] = "AMBIGUOUS" if ambiguous else "INCOMPLETE"
         reasons.extend(envelope["open_questions"])
