@@ -1,8 +1,8 @@
 import importlib
 
 
-def test_runtime_flow_integrates_existing_boundaries():
-    module = importlib.import_module("sessions.SES_025.runtime_flow")
+def test_runtime_flow_integrates_canonical_boundaries():
+    module = importlib.import_module("src.runtime.flow")
 
     result = module.run_runtime_flow({"runtime_id": "runtime-025-001"})
 
