@@ -1,0 +1,24 @@
+name: SES-024 Runtime Observation Contract
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install pytest
+        run: python -m pip install --upgrade pytest
+      - name: Run SES-024 contract tests
+        run: python -m pytest sessions/SES-024/test_runtime_observation_contract.py -v
