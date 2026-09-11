@@ -21,20 +21,15 @@ SES-030 ustanowił `EXECUTION_EFFECT → VERIFICATION`. `VERIFIED` oznacza wył�
 
 SES-031 ustanowił `VERIFICATION → DELIVERY`, gdzie `DELIVERY` oznacza obecnie **wewnętrzny, odtwarzalny manifest dostarczenia**, a nie transmisję do systemu zewnętrznego.
 
-SES-032 ustanowił rzeczywisty test end-to-end łączący istniejące elementy w jeden spójny przepływ od Intent do Delivery Manifest. Test obejmuje również rzeczywistą granicę Human Approval oraz propagację `authorization_source` do `EXECUTION_EFFECT`.
+SES-032 ustanowił rzeczywisty test end-to-end łączący istniejące elementy w jeden spójny przepływ od Intent do Delivery Manifest. Test obejmuje rzeczywistą granicę Human Approval oraz propagację `authorization_source` do `EXECUTION_EFFECT`.
 
-Aktualny commit `main`:
+Najnowszy stan `main` jest zapisany w kolejnych commitach po SES-032; ostatnia zmiana funkcjonalna dodaje **rzeczywiste lokalne wykonanie** BuildPlanu, a następnie E2E łączy ten efekt z istniejącym łańcuchem dowodowym.
 
-`c4753b34f864e84e5831ab7f1924955613c6cf90` — `fix(SES-021): propagate optional authorization provenance`
+Aktualna granica Beta:
 
-Na tym commicie SES-032 E2E jest potwierdzone przez GitHub Actions:
+`APPROVED BUILD PLAN → REAL LOCAL EXECUTION → ARTIFACT → EXECUTION RESULT → EFFECT → VERIFICATION → DELIVERY MANIFEST`
 
-- workflow/job: `e2e`
-- run: `34658589204`
-- check: `103456173236`
-- status: `completed / success`
-
-Na tym samym commicie wszystkie wykryte checki GitHub Actions zakończyły się sukcesem. Poprawka SES-021 zachowuje kompatybilność z wcześniejszymi kontraktami.
+Nowy executor jest celowo lokalny i ograniczony do akcji `create`. Wykonuje rzeczywisty zapis artefaktu do systemu plików. Nie oznacza to jeszcze wykonania zdalnego ani transmisji zewnętrznej.
 
 Minimalny canonical runtime pozostaje:
 
@@ -46,19 +41,30 @@ Canonical implementation runtime znajduje się w `src/runtime/`.
 
 C0 — Canonical Runtime Verification — jest osiągnięte na poziomie ustanowionych kontraktów runtime i regresji SES-023–028.
 
-Pełna integracja późniejszego cyklu System Buildera ma teraz rzeczywisty dowód E2E w SES-032. Nie należy ponownie otwierać C0 bez konkretnej, wykazanej luki funkcjonalnej.
+Pełna integracja późniejszego cyklu System Buildera ma rzeczywisty dowód E2E w SES-032. Nie należy ponownie otwierać C0 bez konkretnej, wykazanej luki funkcjonalnej.
 
 Nie będziemy sztucznie rozszerzać C0 ani tworzyć kolejnych sesji tylko po to, aby je numerować.
 
 ## 4. Cel najbliższy
 
-### Ocena najmniejszej rzeczywistej luki prowadzącej do Beta
+### Domknięcie minimalnej funkcjonalnej granicy Beta
 
-Cel integracyjny `INTENT → ... → VERIFICATION → DELIVERY MANIFEST` jest **zamknięty dowodem E2E**.
+Najważniejsza wykazana luka po SES-032 była konkretna: wcześniejszy przepływ tworzył `EXECUTION_ATTEMPT` i `EXECUTION_RESULT` jako rekordy kontraktowe, ale nie wykonywał rzeczywistej operacji.
 
-Następny krok nie polega na tworzeniu kolejnej abstrakcyjnej granicy. Należy ponownie przeanalizować cały przepływ względem kryterium funkcjonalnej Beta i znaleźć **najmniejszą rzeczywistą lukę**, która uniemożliwia uznanie System Buildera za użyteczny Beta.
+Zamknięto minimalną część tej luki przez lokalny executor:
 
-Jeżeli luka nie istnieje na poziomie obecnego celu — nie dodawać kodu. Jeżeli istnieje — zamknąć ją minimalną zmianą, testem i dowodem CI.
+`APPROVED BUILD PLAN → REAL LOCAL FILESYSTEM EFFECT`
+
+Executor:
+- wymaga zatwierdzonego BuildPlanu,
+- wykonuje wyłącznie lokalną akcję `create`,
+- tworzy rzeczywisty artefakt,
+- zwraca identyfikator i ścieżkę artefaktu,
+- nie wykonuje operacji zdalnych.
+
+SES-032 został rozszerzony tak, aby E2E sprawdzał istnienie rzeczywiście utworzonego artefaktu, a jego identyfikator trafiał dalej do `EXECUTION_EFFECT` i `DELIVERY_MANIFEST`.
+
+Dopiero po potwierdzeniu CI należy wybrać następną lukę. Nie zakładamy z góry, że będzie nią external delivery.
 
 ## 5. Najważniejsze błędy, których nie powtarzamy
 
