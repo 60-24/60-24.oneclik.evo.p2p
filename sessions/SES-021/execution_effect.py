@@ -39,16 +39,17 @@ def create_execution_effect(
     if effect_authorization.get("build_plan_id") != execution_result.get("build_plan_id"):
         raise PermissionError("effect authorization must bind to the same build plan")
 
-    authorization_source = effect_authorization.get("source")
-    if not authorization_source:
-        raise PermissionError("effect authorization source required")
-
-    return {
+    effect = {
         "status": "EXECUTION_EFFECT",
         "source": "EXECUTION_RESULT",
         "execution_effect_id": execution_effect_id,
         "execution_attempt_id": execution_result["execution_attempt_id"],
         "build_plan_id": execution_result["build_plan_id"],
         "outcome": execution_result["outcome"],
-        "authorization_source": authorization_source,
     }
+
+    authorization_source = effect_authorization.get("source")
+    if authorization_source:
+        effect["authorization_source"] = authorization_source
+
+    return effect
