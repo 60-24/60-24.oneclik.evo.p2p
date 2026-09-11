@@ -1,4 +1,4 @@
-"""SES-032 RED: prove the existing System Builder chain can be composed."""
+"""SES-032 E2E: prove the existing System Builder chain can be composed."""
 from __future__ import annotations
 
 import importlib.util
@@ -17,7 +17,7 @@ def load_module(name: str, path: Path):
 
 intent = load_module("ses007", ROOT / "sessions/SES-007/intent_envelope.py")
 specification = load_module("ses008", ROOT / "sessions/SES-008/specification.py")
-build_plan = load_module("ses011", ROOT / "sessions/SES_011/build_plan.py")
+build_plan = load_module("ses011", ROOT / "sessions/SES-011/build_plan.py")
 
 
 def test_existing_chain_reaches_build_plan_without_adapter_code():
