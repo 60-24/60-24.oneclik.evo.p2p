@@ -28,18 +28,9 @@ def _validate_specification(specification: Any) -> None:
         raise TypeError("Specification must be a mapping")
 
     required = {
-        "specification_id",
-        "status",
-        "objective",
-        "requirements",
-        "constraints",
-        "inputs",
-        "outputs",
-        "acceptance_criteria",
-        "assumptions",
-        "unresolved_decisions",
-        "provenance",
-        "authority",
+        "specification_id", "status", "objective", "requirements", "constraints",
+        "inputs", "outputs", "acceptance_criteria", "assumptions",
+        "unresolved_decisions", "provenance", "authority",
     }
     missing = sorted(required - set(specification))
     if missing:
@@ -105,7 +96,8 @@ def transform_specification_to_build_plan(specification: dict[str, Any]) -> dict
     unresolved = list(specification["unresolved_decisions"])
     proposed_present = any(step["origin"] == "PROPOSED" for step in steps)
     protected_unresolved = any(decision.get("protected") for decision in unresolved)
-    authority_scope = (specification.get("authority") or {}).get("scope")
+    authority = specification.get("authority")
+    authority_scope = authority.get("scope") if isinstance(authority, dict) else authority
 
     blockers: list[dict[str, Any]] = []
     if not specification["provenance"]:
