@@ -1,4 +1,7 @@
-"""SES-024 RED test: minimal runtime observation contract."""
+"""SES-024 RED test: minimal runtime observation contract.
+
+The module under test is intentionally absent until CI RED is proven.
+"""
 
 import importlib
 
