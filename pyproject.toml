@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+# Session test files share basenames (e.g. test_build_plan_contract.py exists in
+# both SES-010 and SES-011), which the default import mode cannot collect together.
+addopts = "--import-mode=importlib"
+# Session tests that import a sibling module by bare name; importlib mode does not
+# add the test file's own directory to sys.path.
+pythonpath = [
+    "sessions/SES-006/vs-001",
+    "sessions/SES-007",
+    "sessions/SES-008",
+    "sessions/SES-031",
+]

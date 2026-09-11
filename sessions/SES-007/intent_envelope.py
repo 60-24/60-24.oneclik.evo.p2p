@@ -15,6 +15,19 @@ FIELDS = (
 STATUSES = ("VALID", "INCOMPLETE", "AMBIGUOUS", "PROTECTED")
 LIST_FIELDS = FIELDS[3:9]
 
+# Whole-word disjunctions; "or" must not match "order", "storage" or "report".
+AMBIGUITY_WORDS = ("either", "or", "albo", "lub", "bądź")
+# Inflected forms are matched by stem, covering Polish declension.
+AMBIGUITY_STEMS = (
+    "alternativ", "interpretat", "ambigu",
+    "alternatyw", "interpretac", "niejednoznacz",
+)
+AMBIGUITY_PATTERN = re.compile(
+    r"\b(?:" + "|".join(AMBIGUITY_WORDS) + r")\b"
+    r"|\b(?:" + "|".join(AMBIGUITY_STEMS) + r")\w*",
+    re.IGNORECASE,
+)
+
 
 def _text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value).strip())
@@ -61,21 +74,23 @@ def validate(raw: dict[str, Any]) -> dict[str, Any]:
 
     if not envelope["objective"]:
         reasons.append("objective is missing")
-    if envelope["authority"] not in ("human", "system"):
+    authority_valid = envelope["authority"] in ("human", "system")
+    if not authority_valid:
         reasons.append("authority must be human or system")
     if envelope["protected_decisions"]:
         envelope["status"] = "PROTECTED"
         reasons.append("protected decision requires human approval")
     elif envelope["open_questions"]:
         ambiguous = any(
-            any(token in q.lower() for token in ("either", "or", "alternative", "interpretation", "ambiguous"))
-            for q in envelope["open_questions"]
+            AMBIGUITY_PATTERN.search(q) for q in envelope["open_questions"]
         )
         envelope["status"] = "AMBIGUOUS" if ambiguous else "INCOMPLETE"
         reasons.extend(envelope["open_questions"])
     elif not envelope["objective"] or not envelope["requirements"]:
         envelope["status"] = "INCOMPLETE"
         reasons.append("material objective and at least one requirement are required")
+    elif not authority_valid:
+        envelope["status"] = "INCOMPLETE"
 
     elements = []
     for field in ("requirements", "constraints", "assumptions", "optional_information", "open_questions", "protected_decisions"):
