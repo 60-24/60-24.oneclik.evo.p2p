@@ -31,6 +31,9 @@ execution_effect = load_module("ses021", ROOT / "sessions/SES-021/execution_effe
 verification = load_module("ses030", ROOT / "sessions/SES-030/execution_effect_verification.py")
 delivery = load_module("ses031", ROOT / "sessions/SES-031/delivery.py")
 local_executor = load_module("local_executor", ROOT / "src/execution/local_executor.py")
+execution_observation = load_module(
+    "execution_observation", ROOT / "src/execution/execution_observation.py"
+)
 
 
 def _valid_raw_intent() -> dict[str, object]:
@@ -147,6 +150,21 @@ def test_minimal_full_chain_reaches_delivery_manifest_with_real_local_effect(tmp
     assert effect["status"] == "EXECUTION_EFFECT"
     assert effect["build_plan_id"] == plan["build_plan_id"]
     assert effect["authorization_source"] == "EXPLICIT_HUMAN_APPROVAL"
+
+    observed = execution_observation.observe_execution_artifact(
+        {
+            "execution_effect_id": effect["execution_effect_id"],
+            "execution_attempt_id": attempt["execution_attempt_id"],
+            "build_plan_id": plan["build_plan_id"],
+            "artifact_id": execution["artifacts"][0]["artifact_id"],
+            "path": execution["artifacts"][0]["path"],
+        }
+    )
+    assert observed["status"] == "OBSERVED"
+    assert observed["exists"] is True
+    assert observed["evidence"]["status"] == "EVIDENCE_READY"
+    assert observed["evidence"]["execution_effect_id"] == effect["execution_effect_id"]
+    assert observed["evidence"]["artifact_id"] == execution["artifacts"][0]["artifact_id"]
 
     verified = verification.verify_execution_effect(effect)
     assert verified["status"] == "VERIFIED"
