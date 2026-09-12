@@ -14,7 +14,7 @@ def authorize_validated_build_plan(plan: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise TypeError("BuildPlan must be a mapping")
     if plan.get("status") != "VALIDATED":
-        raise PermissionError("only VALIDATED BuildPlans can use no-approval authorization")
+        raise PermissionError("BuildPlan requires human approval before no-approval authorization")
 
     approval = plan.get("approval")
     if not isinstance(approval, dict):
