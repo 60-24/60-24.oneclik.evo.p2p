@@ -19,3 +19,5 @@ jobs:
         run: python -m pytest -q sessions/SES-032/test_system_builder_e2e.py
       - name: Run SES-034 production entrypoint test
         run: python -m pytest -q sessions/SES-034/test_system_builder_entrypoint.py
+      - name: Run SES-035 human approval production entrypoint test
+        run: python -m pytest -q sessions/SES-035/test_system_builder_human_approval_entrypoint.py
