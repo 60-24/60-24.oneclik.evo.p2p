@@ -17,3 +17,5 @@ jobs:
         run: python -m pip install pytest
       - name: Run SES-032 integration test
         run: python -m pytest -q sessions/SES-032/test_system_builder_e2e.py
+      - name: Run SES-034 production entrypoint test
+        run: python -m pytest -q sessions/SES-034/test_system_builder_entrypoint.py
