@@ -10,18 +10,42 @@ from typing import Any
 _ALLOWED_ACTIONS = {"create"}
 
 
-def execute_build_plan(build_plan: dict[str, Any], output_dir: Path) -> dict[str, Any]:
-    """Execute authorized BuildPlan steps as deterministic local artifacts.
+def _is_execution_authorized(build_plan: dict[str, Any]) -> bool:
+    authorization = build_plan.get("execution_authorization")
+    if not isinstance(authorization, dict) or authorization.get("status") != "AUTHORIZED":
+        return False
 
-    This is deliberately local-only. It performs a real filesystem side effect,
-    while leaving remote execution and external transmission outside this boundary.
+    status = build_plan.get("status")
+    approval = build_plan.get("approval")
+    if not isinstance(approval, dict):
+        return False
+
+    # Existing SES-014 path: explicit human approval remains mandatory when required.
+    if status == "READY_FOR_APPROVAL":
+        return approval.get("status") == "APPROVED"
+
+    # New SES-034 path: validated plans may execute only when approval is explicitly
+    # not required. This is authorization, not approval.
+    if status == "VALIDATED":
+        return (
+            approval.get("required") is False
+            and approval.get("status") == "NOT_REQUIRED"
+            and authorization.get("source") == "VALIDATED_NO_APPROVAL_REQUIRED"
+        )
+
+    return False
+
+
+def execute_build_plan(build_plan: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    """Execute an authorized BuildPlan as deterministic local artifacts.
+
+    Authorization is checked independently from planning and approval. This is
+    deliberately local-only and performs a real filesystem side effect.
     """
     if not isinstance(build_plan, dict):
         raise TypeError("BuildPlan must be a mapping")
-    if build_plan.get("approval", {}).get("status") != "APPROVED":
-        raise PermissionError("approved BuildPlan required")
-    if build_plan.get("status") != "READY_FOR_APPROVAL":
-        raise PermissionError("BuildPlan must be READY_FOR_APPROVAL")
+    if not _is_execution_authorized(build_plan):
+        raise PermissionError("execution-authorized BuildPlan required")
 
     steps = build_plan.get("steps")
     if not isinstance(steps, list) or not steps:
