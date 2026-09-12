@@ -1,124 +1,92 @@
 # SES-034 — System Builder Entrypoint Inspection
 
-**Status:** START
+**Status:** IN_PROGRESS — RED GAP REPAIRED, CI VERIFICATION PENDING
 **Date:** 2026-09-12
 **Previous:** SES-033 GREEN / CLOSED
 **Repository:** `60-24/60-24.oneclik.evo.p2p`
 **Branch:** `main`
 
-## 1. Session rule — mandatory first step
+## 1. Repository-state decision
 
-Start this session by independently inspecting the current repository state.
+**ACCEPT with a real production gap.**
 
-Check:
-- branch and latest commit,
-- CI/check-runs and relevant tests,
-- existing runtime and entrypoint artifacts,
-- contracts and their current implementations,
-- real end-to-end flow,
-- current documentation/state.
+Inspection confirmed that the production System Builder entrypoint was missing the legal execution path for an ordinary `VALIDATED` BuildPlan.
 
-Then issue an explicit own repository-state decision:
+The existing contracts distinguish:
+- `VALIDATED` + `approval.required=false` + `NOT_REQUIRED`,
+- `READY_FOR_APPROVAL` + explicit human approval,
+- execution authorization,
+- actual execution.
 
-**ACCEPT / NOT ACCEPT**
+The previous entrypoint incorrectly forced every plan through the SES-014 human-approval authorizer. That made a normal valid Intent unable to reach the real local executor without manufacturing approval semantics.
 
-Do not rely on assumptions or the previous session's conclusion.
+## 2. Real gap
 
-## 2. Previous verified state
+The actual repository flow was:
 
-SES-033 closed the C0 runtime boundary.
+`VALID INTENT → VALID SPECIFICATION → VALIDATED BUILD PLAN → SES-014 HUMAN APPROVAL AUTHORIZER`
 
-Evidence:
-- C0/SES-033 implementation/test commit: `72347125ff5e59973353a735f057ca6b42b79b9e`
-- CI: 6/6 check-runs SUCCESS
-- key E2E run: `34660091139`
-- key local-execution run: `34660091254`
+SES-014 correctly rejects `VALIDATED` plans because they do not require approval. The local executor also previously accepted only `READY_FOR_APPROVAL + APPROVED` plans.
 
-Verified chain:
+This was a genuine contract mismatch, not a missing test artifact.
 
-`APPROVED BUILD PLAN → REAL LOCAL EXECUTION → REAL ARTIFACT → OBSERVATION → EVIDENCE → EXECUTION RESULT → EFFECT → VERIFICATION → DELIVERY MANIFEST`
+## 3. Minimal repair applied
 
-Important semantic boundaries remain hard:
+Implemented a separate execution-authorization path for the already-declared no-approval case:
 
-`AUTHORIZED ≠ REQUESTED ≠ EXECUTION_ATTEMPT ≠ EXECUTED ≠ RESULT ≠ EFFECT`
+`VALIDATED + approval.required=false + approval.status=NOT_REQUIRED + no blockers`
+`→ EXECUTION_AUTHORIZATION(status=AUTHORIZED, source=VALIDATED_NO_APPROVAL_REQUIRED)`
 
-`VERIFIED ≠ real-world effect`
+Important boundary preserved:
 
-`DELIVERY MANIFEST ≠ external transmission`
+`AUTHORIZATION ≠ APPROVAL`
 
-## 3. Single session goal
+SES-014 remains unchanged. A plan requiring approval still must pass explicit human approval with exact `build_plan_id` binding.
 
-Determine, from the actual repository, whether there is a real missing production entrypoint/orchestrator for:
+The local executor now accepts exactly two legal authorization modes:
 
-`INTENT → SYSTEM BUILDER ENTRYPOINT → EXISTING VERIFIED CHAIN → DELIVERY MANIFEST`
+1. `READY_FOR_APPROVAL + APPROVED` from explicit human approval.
+2. `VALIDATED + NOT_REQUIRED + AUTHORIZED/VALIDATED_NO_APPROVAL_REQUIRED`.
 
-The current project state says the E2E proof composes existing modules directly, while a single production System Builder entrypoint may still be missing. **This is a hypothesis to inspect, not an accepted fact.**
+Blocked, pending, malformed, or unauthorized plans remain rejected.
 
-## 4. Scope
+## 4. Files changed
 
-Inspect only what is necessary to establish the entrypoint boundary:
+- `src/system_builder/validated_execution_authorization.py`
+- `src/system_builder/entrypoint.py`
+- `src/execution/local_executor.py`
+- `sessions/SES-034/test_system_builder_entrypoint.py`
 
-1. existing `src/runtime/` and canonical runtime entrypoints,
-2. System Builder modules already composing the verified chain,
-3. existing CLI/API/application entrypoints, if any,
-4. E2E tests and how they currently invoke the chain,
-5. whether an existing orchestrator already satisfies the required boundary.
+## 5. RED → repair evidence
 
-Do not implement before the inspection establishes a real gap.
+Initial SES-034 production proof failed because the ordinary valid Intent produced `BuildPlan.status=VALIDATED`, while the entrypoint called the human-approval authorizer that requires `READY_FOR_APPROVAL`.
 
-## 5. Hard exclusions
+The repair adds a real production authorization branch and a test proving:
 
-Do not introduce:
-- artificial RED,
-- duplicate runtime,
-- external delivery,
-- P2P/UDP,
-- agents,
-- Trust,
-- persistence,
-- payments,
-- UI,
-- new protocol/Constitution/Ontology semantics.
+`INTENT → SPECIFICATION → VALIDATED BUILD PLAN → EXECUTION AUTHORIZATION → REQUEST → ATTEMPT → REAL EXECUTION → RESULT → EFFECT → OBSERVATION/EVIDENCE → VERIFICATION → DELIVERY`
 
-Do not refactor working modules merely for style.
+The test also proves that the new authorization path rejects a plan that actually requires human approval.
 
-## 6. Decision rule
+## 6. Current verification state
 
-After inspection:
+Latest implementation commit:
+`0890d239a29b09a90ab9498366b3be025b58837d`
 
-### If ACCEPT + no real gap
-Document the evidence and close the session. Do not create unnecessary code/tests.
+Relevant implementation commits:
+- `8a0155ac83c4afa8f43f7db0c17c17840b606f1d`
+- `2b1578fbc0b58c8fce222ae0590399bbaaf7bb2a`
+- `7d9a958cbe352670478a028c6c4cd4f9f6e0ff92`
 
-### If ACCEPT + real gap
-Create the smallest RED test that expresses the missing production boundary, then:
+**CI:** pending. No PASS is declared until GitHub Actions executes the SES-034 workflow on the repaired state and reports success.
 
-`RED → MINIMAL IMPLEMENTATION → GREEN → VERIFY → DOCUMENT → COMMIT → CLOSE`
+## 7. Next autonomous action
 
-### If NOT ACCEPT
-Repair only the smallest blocker required to restore a trustworthy repository state, then re-run the acceptance inspection before selecting the next boundary.
+Inspect the resulting CI run and its logs.
 
-## 7. PASS criteria
+If GREEN:
+`VERIFY → CLOSE SES-034 → create SES-035 bootstrap`
 
-This session passes only when:
+If RED:
+`inspect exact failure → smallest RED test/repair → CI again`
 
-- repository state has been independently inspected,
-- explicit **ACCEPT / NOT ACCEPT** decision is recorded,
-- the existence/non-existence of a production System Builder entrypoint is proven from repository evidence,
-- any identified gap is concrete and minimal,
-- no artificial work is introduced,
-- if implementation is required, the resulting boundary is covered by a real test and CI,
-- documentation records the final state and next boundary.
-
-## 8. Session-size rule
-
-One session = one concrete result.
-
-Maximum: 5 meaningful actions per checkpoint.
-
-Stop and close when the single goal is achieved. Do not continue into the next boundary merely because work remains elsewhere in the project.
-
-## 9. Operating sequence
-
-`INSPECT → ACCEPT/NOT ACCEPT → UNDERSTAND → IDENTIFY GAP → [RED only if real gap] → IMPLEMENT → GREEN → VERIFY → DOCUMENT → COMMIT → CLOSE`
-
-The next session must begin with a fresh repository inspection again; this file is a starting contract, not a substitute for inspection.
+No weakening of the approval boundary and no artificial PASS are permitted.
