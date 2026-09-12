@@ -67,21 +67,37 @@ The repair adds a real production authorization branch and a test proving:
 
 The test also proves that the new authorization path rejects a plan that actually requires human approval.
 
-## 6. Current verification state
+## 6. CI trigger diagnosis and repair
 
-Latest implementation commit:
-`0890d239a29b09a90ab9498366b3be025b58837d`
+The dedicated `.github/workflows/ses034-entrypoint.yml` was present and syntactically valid, but GitHub did not expose a SES-034 run while the established SES-032 workflow continued to execute on `main`.
 
-Relevant implementation commits:
-- `8a0155ac83c4afa8f43f7db0c17c17840b606f1d`
-- `2b1578fbc0b58c8fce222ae0590399bbaaf7bb2a`
-- `7d9a958cbe352670478a028c6c4cd4f9f6e0ff92`
+A minimal PR registration probe was performed and merged as PR #4. It produced no observable SES-034 workflow run.
 
-**CI:** pending. No PASS is declared until GitHub Actions executes the SES-034 workflow on the repaired state and reports success.
+Decision: do not maintain a second CI workflow that GitHub is not reliably registering. The real SES-034 production-entrypoint test is now executed as an additional step inside the already-active SES-032 E2E workflow.
 
-## 7. Next autonomous action
+Active CI path:
 
-Inspect the resulting CI run and its logs.
+`SES-032 E2E workflow → SES-032 integration test → SES-034 production entrypoint test`
+
+Relevant CI commits:
+- `f42f47d75fe92c76537579749c25ce3d2c40f4da` — add SES-034 test to active E2E workflow
+- `141aab8bbf6bad65ca09a0e8d47a91f3aea3c6a8` — remove unregistered duplicate SES-034 workflow
+
+This removes CI duplication without weakening the SES-034 production proof.
+
+## 7. Current verification state
+
+Latest CI integration change:
+`f42f47d75fe92c76537579749c25ce3d2c40f4da`
+
+Cleanup commit:
+`141aab8bbf6bad65ca09a0e8d47a91f3aea3c6a8`
+
+**CI:** pending. No PASS is declared until the active GitHub Actions E2E run executes `sessions/SES-034/test_system_builder_entrypoint.py` and reports success.
+
+## 8. Next autonomous action
+
+Inspect the next active SES-032 E2E run and verify that its final step is the SES-034 production entrypoint test.
 
 If GREEN:
 `VERIFY → CLOSE SES-034 → create SES-035 bootstrap`
