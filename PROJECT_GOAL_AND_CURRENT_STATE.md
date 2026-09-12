@@ -5,85 +5,89 @@
 **Repozytorium:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`
 
-## 1. Po co powstał ten dokument
+## 1. Zasada Source of Truth
 
-Ten plik zapisuje aktualny stan projektu, najbliższy cel, cel ostateczny oraz zasady autonomicznej pracy.
+Repozytorium jest Source of Truth. Chat dostarcza kontekstu, ale stan projektu, decyzje, dowody i checkpointy mają być zapisane w repozytorium.
 
-Repozytorium jest Source of Truth. Chat dostarcza kontekstu, ale stan projektu, dowody i decyzje mają być zapisane w repozytorium.
+## 2. Stan po SES-034
 
-## 2. Aktualny stan po pełnym audycie i E2E
+Zweryfikowany jest spójny szkielet procesu:
 
-Projekt ma zweryfikowane kolejne granice od budowania planu do dostarczenia wewnętrznego manifestu:
+`INTENT → SPECIFICATION → BUILD PLAN → APPROVAL/AUTHORIZATION → REQUEST → ATTEMPT → REAL EXECUTION → RESULT → EFFECT → OBSERVATION/EVIDENCE → VERIFICATION → DELIVERY MANIFEST`
 
-`INTENT → UNDERSTAND → SPECIFICATION → BUILD PLAN → HUMAN APPROVAL → EXECUTION AUTHORIZATION → EXECUTION REQUEST → EXECUTION → RESULT → EFFECT → VERIFICATION → DELIVERY`
+SES-032 dowodzi bezpośredniego pełnego happy path z wymaganym human approval. SES-033 zamknął C0: rzeczywista lokalna egzekucja, artefakt, obserwacja i evidence.
 
-SES-030 ustanowił `EXECUTION_EFFECT → VERIFICATION`. `VERIFIED` oznacza wyłącznie weryfikację kontraktu/proweniencji; nie jest dowodem wystąpienia efektu w świecie zewnętrznym.
+SES-034 dodał i zweryfikował **produkcyjny entrypoint System Buildera**. Aktualny `src/system_builder/entrypoint.py` prowadzi Intent przez istniejące kontrakty aż do Delivery Manifest. Aktywny CI run `34673329445` jest GREEN i wykonał zarówno SES-032, jak i test produkcyjnego entrypointu SES-034.
 
-SES-031 ustanowił `VERIFICATION → DELIVERY`, gdzie `DELIVERY` oznacza obecnie **wewnętrzny, odtwarzalny manifest dostarczenia**, a nie transmisję do systemu zewnętrznego.
+### Dowód SES-034
 
-SES-032 ustanowił rzeczywisty test end-to-end łączący istniejące elementy w jeden spójny przepływ od Intent do Delivery Manifest. Test obejmuje rzeczywistą granicę Human Approval oraz propagację `authorization_source` do `EXECUTION_EFFECT`.
+- commit: `aee8c372693220522768e7bb1813b039a6c3d316`
+- CI run: `34673329445`
+- job: `103498677715`
+- conclusion: `success`
+- SES-032 integration test: `success`
+- SES-034 production entrypoint test: `success`
 
-Następnie zamknięto konkretną lukę wykonawczą: lokalny executor wykonuje rzeczywistą operację `create` w systemie plików. SES-032 został rozszerzony o obserwację rzeczywiście utworzonego artefaktu i dowód `EVIDENCE_READY` powiązany z `EXECUTION_EFFECT`.
+## 3. Granice bezpieczeństwa
 
-### Dowód C0 / SES-033
+Dwa legalne tryby wykonania:
 
-Commit: `72347125ff5e59973353a735f057ca6b42b79b9e`  
-CI: **6/6 check-runs SUCCESS**  
-Kluczowe runy: `34660091139` (`e2e`), `34660091254` (`local-execution`).
+1. `READY_FOR_APPROVAL + APPROVED + AUTHORIZED/EXPLICIT_HUMAN_APPROVAL`
+2. `VALIDATED + NOT_REQUIRED + AUTHORIZED/VALIDATED_NO_APPROVAL_REQUIRED`
 
-Potwierdzony przepływ:
+Obowiązują twarde rozróżnienia:
 
-`APPROVED BUILD PLAN → REAL LOCAL EXECUTION → REAL ARTIFACT → OBSERVATION → EVIDENCE → EXECUTION RESULT → EFFECT → VERIFICATION → DELIVERY MANIFEST`
+`AUTHORIZATION ≠ APPROVAL`
 
-Weryfikacja artefaktu jest rzeczywista: E2E sprawdza istnienie pliku, identyfikator artefaktu oraz powiązanie dowodu z `EXECUTION_EFFECT`.
+`AUTHORIZED ≠ REQUESTED ≠ EXECUTION_ATTEMPT ≠ EXECUTED ≠ RESULT ≠ EFFECT`
 
-## 3. Stan celu pośredniego C0
+`VERIFIED ≠ real-world effect`
 
-C0 — Canonical Runtime Verification — jest zamknięte. Kontrakty runtime oraz regresja SES-023–028 są potwierdzone, a lokalny efekt wykonania ma teraz własną obserwację i dowód.
+`DELIVERY MANIFEST ≠ external delivery`
 
-Nie należy ponownie otwierać C0 bez konkretnej, wykazanej luki funkcjonalnej.
+Provenance jest sprawdzana fail-closed; zatwierdzony plan z niewłaściwym źródłem authorization nie może zostać wykonany.
 
-Nie będziemy sztucznie rozszerzać C0 ani tworzyć kolejnych sesji tylko po to, aby je numerować.
+## 4. Canonical runtime
 
-## 4. Najbliższa rzeczywista granica Beta
+Canonical runtime pozostaje w `src/runtime/` dla granicy:
 
-Po zamknięciu C0 pozostała jedna istotna luka integracyjna: **E2E dowodzi całego przepływu, ale przepływ nadal jest składany bezpośrednio w teście z wielu modułów SES. Nie istnieje jeszcze jeden produkcyjny entrypoint/orchestrator System Buildera, który przyjmuje Intent i prowadzi cały zweryfikowany przepływ do Delivery Manifest.**
+`INPUT → ENTRYPOINT → OBSERVATION → EVIDENCE`
 
-Najbliższy cel:
+System Builder entrypoint jest warstwą orkiestracji istniejących kontraktów, a nie drugim canonical runtime.
 
-`INTENT → SYSTEM BUILDER ENTRYPOINT → EXISTING VERIFIED CHAIN → DELIVERY MANIFEST`
+## 5. Rzeczywista pozostała luka
 
-Warunek zakresu:
-- wykorzystać istniejące moduły i kontrakty,
-- nie tworzyć drugiego runtime obok `src/runtime/`,
-- nie zmieniać semantyki authorization/execution/effect/verification,
-- nie dodawać external delivery,
-- nie dodawać P2P/UDP, agentów, Trust, persistence ani UI,
-- najpierw RED tylko wtedy, gdy brak testu dla jednego produkcyjnego entrypointu jest rzeczywistą luką,
-- minimalna implementacja i jeden E2E dowód uruchamiający ten entrypoint.
+Po SES-034 nie ma podstaw do tworzenia nowego kontraktu. Pozostała jedna mała luka integracyjna:
 
-To jest obecnie najbardziej bezpośrednia granica prowadząca do funkcjonalnej Beta System Buildera.
+> Produkcyjny entrypoint został dowiedziony dla ścieżki `VALIDATED + NOT_REQUIRED`, natomiast ścieżka wymagająca jawnej zgody człowieka nie ma jeszcze własnego E2E dowodu przechodzącego przez produkcyjny entrypoint.
 
-## 5. Najważniejsze błędy, których nie powtarzamy
+To jest zakres SES-035.
 
-1. **Nie mnożymy sesji i kontraktów dla samego postępu.** Sesja musi mieć rzeczywisty cel funkcjonalny, dowód lub konieczne zamknięcie.
-2. **Nie tworzymy sztucznego RED.** Jeżeli kod już spełnia wymaganie, brak jest w testach/dowodzie, a nie w implementacji.
-3. **Nie deklarujemy GREEN bez rzeczywistego testu/CI odnoszącego się do aktualnego kodu.**
-4. **Każdą sesję kontrolujemy jako część całego projektu.** Lokalnie poprawna zmiana może być globalnie błędna.
-5. **Minimalistyczna maksymalizacja:** najmniejsza ilość kodu, testów i dokumentacji potrzebna do zamknięcia rzeczywistej luki.
-6. **Nie wzmacniamy semantyki bez decyzji:** `AUTHORIZED ≠ REQUESTED ≠ EXECUTION_ATTEMPT ≠ EXECUTED ≠ RESULT ≠ EFFECT`; `VERIFIED ≠ real-world effect`; `DELIVERY MANIFEST ≠ external transmission`.
-7. **Nie dokładamy P2P/UDP, agentów, Trust, persistence, płatności, integracji zewnętrznych ani nowych znaczeń Constitution/Ontology/protocol bez dowodu, że są potrzebne dla najbliższego celu.**
-8. **Nie tworzymy duplikatów runtime.** `src/runtime/` pozostaje canonical runtime; `sessions/` to kontrakty, testy, dowody i historia.
-9. **Dokumentacja stanu musi być aktualizowana po istotnym przejściu.** Nie wolno pozostawiać starego numeru sesji jako aktualnego stanu.
-10. **Celem jest zakończenie działającego Beta, nie nieskończony ciąg sesji.** Przy każdym kroku pytanie kontrolne brzmi: „Czy to materialnie przybliża nas do działającej Beta?”
+Cel:
 
-## 6. Zasada pracy
+`PROPOSED INTENT → READY_FOR_APPROVAL → HUMAN APPROVAL → PRODUCTION ENTRYPOINT → REAL EXECUTION → RESULT → EFFECT → VERIFICATION → DELIVERY MANIFEST`
+
+## 6. Czego teraz NIE robimy
+
+Nie dodajemy:
+
+- P2P/UDP,
+- Trust/LocalTrust,
+- agent swarm,
+- persistence,
+- UI,
+- external delivery,
+- nowych źródeł authorization,
+- nowych warstw runtime,
+- kolejnych kontraktów bez wykazanej luki.
+
+Nie tworzymy sesji dla samej numeracji.
+
+## 7. Zasada pracy
 
 `INSPECT → UNDERSTAND → IDENTIFY GAP → RED TEST (tylko gdy luka jest rzeczywista) → IMPLEMENT → GREEN → VERIFY → DOCUMENT → COMMIT → CLOSE`
 
-Po zamknięciu krótkiego celu ponownie kontrolujemy cały projekt i dopiero wtedy wybieramy następny.
-
-Rutynowa inspekcja, testy, dokumentacja i commity są autonomiczne w już delegowanym zakresie.
+Autonomiczne działania rutynowe w już delegowanym zakresie są dozwolone bez ponownego pytania o zgodę.
 
 Każdy checkpoint:
 
@@ -91,7 +95,7 @@ Każdy checkpoint:
 
 Maksymalnie 5 istotnych działań na checkpoint.
 
-## 7. Cel ostateczny
+## 8. Cel Beta
 
 Funkcjonalny Beta System Builder / P2P 60-24 OneClick Evo Positiv:
 
@@ -99,8 +103,8 @@ Funkcjonalny Beta System Builder / P2P 60-24 OneClick Evo Positiv:
 
 System ma rozumieć, projektować, budować, testować i dostarczać, przy zachowaniu ludzkiej kontroli nad decyzjami wymagającymi człowieka.
 
-## 8. Kryterium zakończenia
+## 9. Kryterium zakończenia
 
-Nie uznajemy celu za osiągnięty na podstawie deklaracji. Potrzebny jest aktualny, odtwarzalny dowód w repozytorium.
+Beta nie jest uznawana na podstawie liczby sesji ani deklaracji. Potrzebny jest aktualny, odtwarzalny dowód w repozytorium obejmujący produkcyjny entrypoint, legalne ścieżki authorization, rzeczywistą lokalną egzekucję, provenance, verification oraz delivery manifest.
 
-**Kierunek nadrzędny: nie budować więcej kodu niż potrzeba. Najpierw udowodnić istniejące elementy, potem naprawić tylko rzeczywiste luki, a następnie zakończyć Beta.**
+Najbliższy cel jest celowo mały: **SES-035 — explicit human approval przez production entrypoint + GREEN CI.**
