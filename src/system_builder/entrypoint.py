@@ -1,4 +1,4 @@
-"""Production System Builder entrypoint over the existing verified contracts."""
+"""Production System Builder entrypoint over the verified contracts."""
 from __future__ import annotations
 
 import importlib.util
@@ -22,6 +22,9 @@ intent = _load("ses007_intent", "sessions/SES-007/intent_envelope.py")
 specification = _load("ses008_specification", "sessions/SES-008/specification.py")
 build_plan = _load("ses011_build_plan", "sessions/SES-011/build_plan.py")
 authorization = _load("ses014_authorization", "sessions/SES-014/execution_authorization.py")
+validated_authorization = _load(
+    "validated_execution_authorization", "src/system_builder/validated_execution_authorization.py"
+)
 execution_request = _load("ses017_request", "sessions/SES_017/execution_request.py")
 execution_dispatch = _load("ses018_dispatch", "sessions/SES-018/execution_dispatch.py")
 execution_result = _load("ses019_result", "sessions/SES-019/execution_result.py")
@@ -32,20 +35,26 @@ local_executor = _load("local_executor", "src/execution/local_executor.py")
 execution_observation = _load("execution_observation", "src/execution/execution_observation.py")
 
 
+def _authorize(plan: dict[str, Any], human_approval: dict[str, Any] | None) -> dict[str, Any]:
+    if plan.get("status") == "VALIDATED":
+        return validated_authorization.authorize_validated_build_plan(plan)
+    return authorization.authorize_build_plan(plan, human_approval)
+
+
 def run_system_builder(
     raw_intent: dict[str, Any],
-    human_approval: dict[str, Any],
+    human_approval: dict[str, Any] | None,
     output_dir: Path,
 ) -> dict[str, Any]:
-    """Run one explicit Intent through the existing verified local chain."""
+    """Run one explicit Intent through planning, authorization, execution and delivery."""
     validated = intent.validate(raw_intent)
     spec = specification.build_specification(validated)
     plan = build_plan.transform_specification_to_build_plan(spec)
-    approved = authorization.authorize_build_plan(plan, human_approval)
+    authorized = _authorize(plan, human_approval)
 
-    request = execution_request.create_execution_request(approved)
+    request = execution_request.create_execution_request(authorized)
     attempt = execution_dispatch.create_execution_attempt(request)
-    execution = local_executor.execute_build_plan(approved, output_dir)
+    execution = local_executor.execute_build_plan(authorized, output_dir)
     result = execution_result.create_execution_result(attempt, "SUCCEEDED")
 
     first_artifact = execution["artifacts"][0]
@@ -56,7 +65,7 @@ def run_system_builder(
         {
             "status": "AUTHORIZED",
             "build_plan_id": plan["build_plan_id"],
-            "source": "EXPLICIT_HUMAN_APPROVAL",
+            "source": authorized["execution_authorization"]["source"],
         },
     )
 
