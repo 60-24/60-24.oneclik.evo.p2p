@@ -16,6 +16,10 @@ def test_local_executor_performs_real_filesystem_effect(tmp_path):
         "build_plan_id": "BUILD-BETA-001",
         "status": "READY_FOR_APPROVAL",
         "approval": {"status": "APPROVED"},
+        "execution_authorization": {
+            "status": "AUTHORIZED",
+            "source": "EXPLICIT_HUMAN_APPROVAL",
+        },
         "steps": [
             {"id": "STEP-001", "action": "create", "target": "hello beta artifact"}
         ],
@@ -37,6 +41,10 @@ def test_local_executor_rejects_unapproved_plan(tmp_path):
         "build_plan_id": "BUILD-BETA-002",
         "status": "READY_FOR_APPROVAL",
         "approval": {"status": "PENDING"},
+        "execution_authorization": {
+            "status": "AUTHORIZED",
+            "source": "EXPLICIT_HUMAN_APPROVAL",
+        },
         "steps": [{"id": "STEP-001", "action": "create", "target": "blocked"}],
     }
 
@@ -46,3 +54,23 @@ def test_local_executor_rejects_unapproved_plan(tmp_path):
         pass
     else:
         raise AssertionError("unapproved BuildPlan must not execute")
+
+
+def test_local_executor_rejects_approved_plan_with_wrong_authorization_source(tmp_path):
+    build_plan = {
+        "build_plan_id": "BUILD-BETA-003",
+        "status": "READY_FOR_APPROVAL",
+        "approval": {"status": "APPROVED"},
+        "execution_authorization": {
+            "status": "AUTHORIZED",
+            "source": "VALIDATED_NO_APPROVAL_REQUIRED",
+        },
+        "steps": [{"id": "STEP-001", "action": "create", "target": "blocked"}],
+    }
+
+    try:
+        local_executor.execute_build_plan(build_plan, tmp_path)
+    except PermissionError:
+        pass
+    else:
+        raise AssertionError("approved plan with wrong authorization provenance must not execute")
