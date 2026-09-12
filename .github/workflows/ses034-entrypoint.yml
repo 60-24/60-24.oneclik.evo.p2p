@@ -19,3 +19,5 @@ jobs:
         run: python -m pip install pytest
       - name: Run SES-034 entrypoint test
         run: python -m pytest -q sessions/SES-034/test_system_builder_entrypoint.py
+
+# CI registration probe: keep this workflow independently observable.
