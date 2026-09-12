@@ -14,15 +14,15 @@ def authorize_validated_build_plan(plan: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise TypeError("BuildPlan must be a mapping")
     if plan.get("status") != "VALIDATED":
-        raise ValueError("only VALIDATED BuildPlans can use no-approval authorization")
+        raise PermissionError("only VALIDATED BuildPlans can use no-approval authorization")
 
     approval = plan.get("approval")
     if not isinstance(approval, dict):
-        raise ValueError("BuildPlan approval contract is missing")
+        raise PermissionError("BuildPlan approval contract is missing")
     if approval.get("required") is not False:
         raise PermissionError("BuildPlan requires human approval")
     if approval.get("status") != "NOT_REQUIRED":
-        raise ValueError("no-approval BuildPlan must have NOT_REQUIRED approval status")
+        raise PermissionError("no-approval BuildPlan must have NOT_REQUIRED approval status")
     if plan.get("blockers"):
         raise PermissionError("blocked BuildPlan cannot be authorized")
 
