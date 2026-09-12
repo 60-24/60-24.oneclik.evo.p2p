@@ -43,9 +43,17 @@ def _proposed_specification() -> dict[str, object]:
     return proposed
 
 
+def _build_plan(specification: dict[str, object]) -> dict[str, object]:
+    build_plan = _load("ses011", "sessions/SES-011/build_plan.py")
+    return build_plan.transform_specification_to_build_plan(specification)
+
+
 def test_production_entrypoint_preserves_explicit_human_approval_boundary(tmp_path: Path):
     entrypoint = _load("system_builder_entrypoint", "src/system_builder/entrypoint.py")
     proposed = _proposed_specification()
+    plan = _build_plan(proposed)
+    assert plan["status"] == "READY_FOR_APPROVAL"
+    assert plan["approval"]["required"] is True
 
     original_builder = entrypoint.specification.build_specification
     entrypoint.specification.build_specification = lambda _: deepcopy(proposed)
@@ -60,9 +68,7 @@ def test_production_entrypoint_preserves_explicit_human_approval_boundary(tmp_pa
             _valid_raw_intent(),
             human_approval={
                 "approved": True,
-                "build_plan_id": _load(
-                    "ses011", "sessions/SES-011/build_plan.py"
-                ).transform_specification_to_build_plan(proposed)["build_plan_id"],
+                "build_plan_id": plan["build_plan_id"],
                 "authority_scope": "human-approved",
             },
             output_dir=tmp_path / "approved",
@@ -90,8 +96,8 @@ def test_production_entrypoint_does_not_accept_mismatched_human_approval(tmp_pat
                     "build_plan_id": "BUILD-NOT-THE-PLAN",
                     "authority_scope": "human-approved",
                 },
-                output_dir=tmp_path,
+                output_dir=tmp_path / "mismatch",
             )
+        assert not (tmp_path / "mismatch").exists()
     finally:
         entrypoint.specification.build_specification = original_builder
-    assert not tmp_path.exists()
