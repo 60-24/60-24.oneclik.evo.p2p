@@ -22,7 +22,10 @@ def _is_execution_authorized(build_plan: dict[str, Any]) -> bool:
 
     # Existing SES-014 path: explicit human approval remains mandatory when required.
     if status == "READY_FOR_APPROVAL":
-        return approval.get("status") == "APPROVED"
+        return (
+            approval.get("status") == "APPROVED"
+            and authorization.get("source") == "EXPLICIT_HUMAN_APPROVAL"
+        )
 
     # New SES-034 path: validated plans may execute only when approval is explicitly
     # not required. This is authorization, not approval.
