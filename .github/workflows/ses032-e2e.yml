@@ -21,3 +21,5 @@ jobs:
         run: python -m pytest -q sessions/SES-034/test_system_builder_entrypoint.py
       - name: Run SES-035 human approval production entrypoint test
         run: python -m pytest -q sessions/SES-035/test_system_builder_human_approval_entrypoint.py
+      - name: Run SES-037 minimal new requirement proof
+        run: python -m pytest -q sessions/SES-037/test_minimal_new_requirement.py
