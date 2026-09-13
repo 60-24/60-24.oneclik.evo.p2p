@@ -1,6 +1,6 @@
 # System Builder — Aktualny stan, cel pośredni i cel ostateczny
 
-**Data:** 2026-09-12  
+**Data:** 2026-09-13  
 **Status:** ACTIVE / SOURCE OF TRUTH  
 **Repozytorium:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`
@@ -9,24 +9,34 @@
 
 Repozytorium jest Source of Truth. Chat dostarcza kontekstu, ale stan projektu, decyzje, dowody i checkpointy mają być zapisane w repozytorium.
 
-## 2. Stan po SES-034
+## 2. Stan po SES-035
 
 Zweryfikowany jest spójny szkielet procesu:
 
-`INTENT → SPECIFICATION → BUILD PLAN → APPROVAL/AUTHORIZATION → REQUEST → ATTEMPT → REAL EXECUTION → RESULT → EFFECT → OBSERVATION/EVIDENCE → VERIFICATION → DELIVERY MANIFEST`
+`INTENT → SPECIFICATION → BUILD PLAN → HUMAN APPROVAL / AUTHORIZATION → REQUEST → ATTEMPT → REAL EXECUTION → RESULT → EFFECT → OBSERVATION/EVIDENCE → VERIFICATION → DELIVERY MANIFEST`
 
-SES-032 dowodzi bezpośredniego pełnego happy path z wymaganym human approval. SES-033 zamknął C0: rzeczywista lokalna egzekucja, artefakt, obserwacja i evidence.
+SES-032 dowodzi pełny happy path. SES-033 zamknął C0: rzeczywista lokalna egzekucja, artefakt, obserwacja i evidence. SES-034 dodał i zweryfikował produkcyjny entrypoint System Buildera. SES-035 zamknął brakujący dowód jawnej zgody człowieka przez ten produkcyjny entrypoint.
 
-SES-034 dodał i zweryfikował **produkcyjny entrypoint System Buildera**. Aktualny `src/system_builder/entrypoint.py` prowadzi Intent przez istniejące kontrakty aż do Delivery Manifest. Aktywny CI run `34673329445` jest GREEN i wykonał zarówno SES-032, jak i test produkcyjnego entrypointu SES-034.
+### Dowód SES-035
 
-### Dowód SES-034
-
-- commit: `aee8c372693220522768e7bb1813b039a6c3d316`
-- CI run: `34673329445`
-- job: `103498677715`
+- commit: `9b46e4d9c7222aefeaae785047c87e801c7a5f46`
+- commit message: `docs(SES-035): preserve human approval boundary as project knowledge`
+- CI run: `34692639456`
+- job: `103550506693`
 - conclusion: `success`
-- SES-032 integration test: `success`
-- SES-034 production entrypoint test: `success`
+- Beta workflow run: `34692639495`
+- Beta workflow conclusion: `success`
+
+SES-035 dowodzi przez produkcyjny `run_system_builder(...)`:
+
+- ścieżkę wymagającą `READY_FOR_APPROVAL + APPROVED`,
+- zgodność `human_approval.build_plan_id` z rzeczywistym BuildPlan,
+- provenance `EXPLICIT_HUMAN_APPROVAL`,
+- rzeczywistą lokalną egzekucję,
+- `RESULT → EFFECT → OBSERVATION/EVIDENCE → VERIFICATION → DELIVERY MANIFEST`,
+- fail-closed dla braku zgody i niedopasowanej zgody.
+
+SES-035 nie wprowadza produkcyjnego mechanizmu Proposal. Test dostarcza już poprawną `PROPOSED` Specification, aby izolować dowód granicy Human Approval.
 
 ## 3. Granice bezpieczeństwa
 
@@ -57,19 +67,18 @@ System Builder entrypoint jest warstwą orkiestracji istniejących kontraktów, 
 
 ## 5. Rzeczywista pozostała luka
 
-Po SES-034 nie ma podstaw do tworzenia nowego kontraktu. Pozostała jedna mała luka integracyjna:
+Po SES-035 nie ma podstaw do tworzenia nowego kontraktu ani sesji dla samej numeracji. Dalszy krok musi wynikać z rzeczywistego wymagania Beta i istniejącego kodu/dowodów.
 
-> Produkcyjny entrypoint został dowiedziony dla ścieżki `VALIDATED + NOT_REQUIRED`, natomiast ścieżka wymagająca jawnej zgody człowieka nie ma jeszcze własnego E2E dowodu przechodzącego przez produkcyjny entrypoint.
+Do sprawdzenia pozostają dwie konkretne możliwości:
 
-To jest zakres SES-035.
+1. **Naturalny Proposal flow** — produkcyjny mechanizm przejścia do `PROPOSED` nie został jeszcze dowiedziony i nie należy go implementować, dopóki kryterium Beta nie wykaże, że jest to rzeczywista luka.
+2. **External Delivery** — obecny `DELIVERY MANIFEST` jest wewnętrznym, zweryfikowanym dowodem dostarczenia; nie oznacza faktycznego dostarczenia do zewnętrznego odbiorcy/systemu.
 
-Cel:
-
-`PROPOSED INTENT → READY_FOR_APPROVAL → HUMAN APPROVAL → PRODUCTION ENTRYPOINT → REAL EXECUTION → RESULT → EFFECT → VERIFICATION → DELIVERY MANIFEST`
+Najpierw należy ustalić, która z tych granic jest rzeczywistym wymaganiem Beta. Nie budować architektury „na zapas”.
 
 ## 6. Czego teraz NIE robimy
 
-Nie dodajemy:
+Nie dodajemy bez wykazanej potrzeby:
 
 - P2P/UDP,
 - Trust/LocalTrust,
@@ -79,13 +88,13 @@ Nie dodajemy:
 - external delivery,
 - nowych źródeł authorization,
 - nowych warstw runtime,
-- kolejnych kontraktów bez wykazanej luki.
+- kolejnych kontraktów.
 
-Nie tworzymy sesji dla samej numeracji.
+Nie tworzymy SES-036 wyłącznie dla numeracji.
 
 ## 7. Zasada pracy
 
-`INSPECT → UNDERSTAND → IDENTIFY GAP → RED TEST (tylko gdy luka jest rzeczywista) → IMPLEMENT → GREEN → VERIFY → DOCUMENT → COMMIT → CLOSE`
+`INSPECT → UNDERSTAND → IDENTIFY GAP → RED TEST (tylko gdy luka jest rzeczywista) → IMPLEMENT → GREEN → VERIFY → DOCUMENT → COMMIT → CLOSE → CONTINUE`
 
 Autonomiczne działania rutynowe w już delegowanym zakresie są dozwolone bez ponownego pytania o zgodę.
 
@@ -107,4 +116,4 @@ System ma rozumieć, projektować, budować, testować i dostarczać, przy zacho
 
 Beta nie jest uznawana na podstawie liczby sesji ani deklaracji. Potrzebny jest aktualny, odtwarzalny dowód w repozytorium obejmujący produkcyjny entrypoint, legalne ścieżki authorization, rzeczywistą lokalną egzekucję, provenance, verification oraz delivery manifest.
 
-Najbliższy cel jest celowo mały: **SES-035 — explicit human approval przez production entrypoint + GREEN CI.**
+SES-035 jest GREEN / CLOSED. Następny krok ma zostać wyznaczony wyłącznie po ponownym przeglądzie aktualnego repozytorium i kryteriów Beta.
