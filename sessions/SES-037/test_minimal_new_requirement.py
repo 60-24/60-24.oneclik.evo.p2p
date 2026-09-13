@@ -39,6 +39,19 @@ def test_minimal_new_requirement_creates_exact_requested_artifact(tmp_path: Path
     )
 
     assert result["status"] == "DELIVERED"
+    assert result["source"] == "VERIFICATION"
+    assert result["delivery_basis"] == "VERIFICATION"
+    assert result["verification_id"]
+    assert result["execution_attempt_id"]
+    assert result["build_plan_id"]
+    assert len({
+        result["verification_id"],
+        result["execution_attempt_id"],
+        result["build_plan_id"],
+    }) == 3
+
     assert len(result["artifact_ids"]) == 1
+    artifact_id = result["artifact_ids"][0]
     artifact = next(tmp_path.glob("*.txt"))
     assert artifact.read_text(encoding="utf-8") == requested_text + "\n"
+    assert artifact.stem == artifact_id
