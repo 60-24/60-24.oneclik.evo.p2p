@@ -36,11 +36,8 @@ jobs:
         run: python -m pytest -q sessions/SES-037/test_minimal_new_requirement.py
 
       - name: Build Windows executable
-        run: >-
-          python -m PyInstaller --onefile --name SystemBuilderDemo
-          --add-data "src;src"
-          --add-data "sessions;sessions"
-          demo/system_builder_demo.py
+        shell: pwsh
+        run: python -m PyInstaller --onefile --name SystemBuilderDemo --add-data 'src;src' --add-data 'sessions;sessions' demo/system_builder_demo.py
 
       - name: Run packaged demo
         shell: pwsh
