@@ -54,14 +54,14 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force release | Out-Null
           Copy-Item dist/SystemBuilderDemo.exe release/SystemBuilderDemo.exe
-          @'
-System Builder Demo
-
-Run SystemBuilderDemo.exe.
-It executes the real production System Builder entrypoint with the
-deterministic example request "Hello Beta Extension" and creates a
-local text artifact.
-'@ | Set-Content -Encoding UTF8 release/README.txt
+          @(
+            'System Builder Demo'
+            ''
+            'Run SystemBuilderDemo.exe.'
+            'It executes the real production System Builder entrypoint with the'
+            'deterministic example request "Hello Beta Extension" and creates a'
+            'local text artifact.'
+          ) | Set-Content -Encoding UTF8 release/README.txt
 
       - name: Upload Windows executable
         uses: actions/upload-artifact@v4
