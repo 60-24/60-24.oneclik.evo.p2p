@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  local-execution:
+  test-local-executor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,3 +17,58 @@ jobs:
         run: python -m pip install pytest
       - name: Run local execution boundary test
         run: python -m pytest -q tests/test_local_executor_beta.py
+
+  build-windows-demo:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip pyinstaller pytest
+
+      - name: Verify existing System Builder proof
+        run: python -m pytest -q sessions/SES-037/test_minimal_new_requirement.py
+
+      - name: Build Windows executable
+        run: >-
+          python -m PyInstaller --onefile --name SystemBuilderDemo
+          --add-data "src;src"
+          --add-data "sessions;sessions"
+          demo/system_builder_demo.py
+
+      - name: Run packaged demo
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force demo-output -ErrorAction SilentlyContinue
+          .\dist\SystemBuilderDemo.exe --output demo-output
+          $artifact = Get-ChildItem demo-output -Filter *.txt | Select-Object -First 1
+          if ($null -eq $artifact) { throw 'No demo artifact was produced.' }
+          $content = Get-Content $artifact.FullName -Raw
+          if ($content -ne "Hello Beta Extension`r`n") { throw "Unexpected artifact content: $content" }
+
+      - name: Package distributable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item dist/SystemBuilderDemo.exe release/SystemBuilderDemo.exe
+          @'
+System Builder Demo
+
+Run SystemBuilderDemo.exe.
+It executes the real production System Builder entrypoint with the
+deterministic example request "Hello Beta Extension" and creates a
+local text artifact.
+'@ | Set-Content -Encoding UTF8 release/README.txt
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: system-builder-windows-demo
+          path: release/
+          if-no-files-found: error
