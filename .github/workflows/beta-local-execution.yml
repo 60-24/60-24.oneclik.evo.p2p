@@ -41,6 +41,8 @@ jobs:
 
       - name: Run packaged demo
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
         run: |
           Remove-Item -Recurse -Force demo-output -ErrorAction SilentlyContinue
           .\dist\SystemBuilderDemo.exe --output demo-output
