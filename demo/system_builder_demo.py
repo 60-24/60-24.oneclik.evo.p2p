@@ -24,6 +24,7 @@ def _load_entrypoint():
 
 
 def main() -> int:
+    sys.stdout.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(description="System Builder — real minimal demo")
     parser.add_argument(
         "--text",
