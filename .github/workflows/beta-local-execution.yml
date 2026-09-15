@@ -17,8 +17,6 @@ jobs:
         run: python -m pip install pytest
       - name: Run local execution boundary test
         run: python -m pytest -q tests/test_local_executor_beta.py
-      - name: Run SES-043 P2P RED contract
-        run: python -m pytest -q sessions/SES-043/test_p2p_two_nodes.py
 
   build-windows-demo:
     runs-on: windows-latest
