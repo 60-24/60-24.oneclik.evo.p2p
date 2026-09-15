@@ -2,7 +2,7 @@ import threading
 
 
 def test_two_nodes_exchange_message_through_public_api():
-    from src.p2p.node import P2PNode
+    from src.p2p import P2PNode
 
     server = P2PNode("B")
     client = P2PNode("A")
