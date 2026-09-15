@@ -1,7 +1,7 @@
-# SES-044 — Next P2P Capability
+# SES-044 — Standalone Downloadable P2P Node
 
 **Date:** 2026-09-15  
-**Status:** OPEN  
+**Status:** VERIFICATION PENDING  
 **Project:** P2P 60-24 OneClick Evo  
 **Repository:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`
@@ -20,19 +20,87 @@ Verified evidence:
 
 The SES-043 TCP transport is an experimental local proof only, not a final architecture decision.
 
-## 2. Session rule
+## 2. User-defined next requirement
 
-Do not assume the next feature. Begin with:
+The next useful deliverable is now explicit:
 
-`INSPECT → UNDERSTAND → IDENTIFY GAP → RED TEST`
+> **A small downloadable program that can be started as two independent nodes and make a P2P connection between them.**
 
-Only after the real next requirement is identified may implementation begin.
+The program must:
 
-## 3. Current baseline
+- be a single downloadable Python file;
+- require Python 3.x only;
+- require no external packages;
+- support one node in listen mode;
+- support a second node in connect mode;
+- exchange a message and response;
+- be executable on the same LAN when the listener address is reachable.
 
-The project now has the smallest proven local communication primitive. The next session must determine the smallest useful capability that logically follows from that primitive without prematurely designing the whole P2P system.
+## 3. INSPECT → GAP
 
-## 4. Hard boundaries
+Existing `src/p2p/node.py` already proves the communication primitive, but it is package-oriented and requires the repository source layout. That does not yet satisfy the simplest user-facing **download one file → run two nodes** requirement.
+
+Therefore the smallest coherent GAP is a standalone root-level executable script.
+
+## 4. RED contract
+
+Added:
+
+`sessions/SES-044/test_downloadable_two_nodes.py`
+
+Commit:
+
+`4a62e3b733bd8ededbf87d6c04019e12ba013c34`
+
+The test requires two independently started processes using `p2p_node.py`, with A connecting to B and receiving `pong-from-B`.
+
+## 5. Implementation
+
+Added:
+
+`p2p_node.py`
+
+Commit:
+
+`dc725a6040abe9cd43cc69cc3f431150c44762dd`
+
+The program uses only Python standard-library TCP sockets.
+
+## 6. Automated proof
+
+Added:
+
+`.github/workflows/ses-044-p2p-download.yml`
+
+Commit:
+
+`3a4aee3b0cabbc53479656b3b886c2b4ff189b78`
+
+The workflow executes the SES-044 two-node test on pushes to `main` and pull requests.
+
+## 7. User documentation
+
+Added:
+
+`P2P_NODE.md`
+
+Commit:
+
+`17f7f04a40713b19e0e84bedb159c2ef7057f4cc`
+
+It contains copy/paste commands for node B and node A, including the LAN usage case.
+
+## 8. Current verification boundary
+
+Implementation exists and is documented. **Do not mark SES-044 GREEN yet.**
+
+Required final evidence:
+
+1. SES-044 standalone two-node CI job = SUCCESS;
+2. verify the final `main` commit contains the program, test and documentation;
+3. only then close the session with a stone.
+
+## 9. Hard boundaries
 
 Do not introduce without explicit requirement and appropriate decision level:
 
@@ -47,12 +115,16 @@ Do not introduce without explicit requirement and appropriate decision level:
 - swarm/agent architecture,
 - final transport commitment.
 
-## 5. Engineering rule
+## 10. Scope
 
-Repository is Source of Truth. Reuse before inventing. Smallest coherent change. No false PASS. YELLOW/RED architectural decisions remain subject to human approval.
+SES-044 is proving a **downloadable minimal two-node communication program**, not a production P2P network.
 
-## 6. Expected outcome
+It does not yet prove:
 
-Identify and prove **one** next concrete P2P capability with the smallest possible RED test and real automated evidence.
-
-Do not expand scope merely because SES-043 passed.
+- discovery,
+- NAT traversal,
+- authentication,
+- encryption,
+- persistence,
+- Internet production readiness,
+- final transport architecture.
