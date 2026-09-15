@@ -1,154 +1,90 @@
 # SES-043 — Minimal P2P Network Proof
 
 **Date:** 2026-09-15  
-**Status:** RED TEST CONFIRMED / IMPLEMENTATION GATED  
+**Status:** GREEN / CLOSED  
 **Project:** P2P 60-24 OneClick Evo  
 **Repository:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`
 
-## 1. Stone / checkpoint wejściowy
+## 1. Stone / checkpoint
 
-`SES-040 = GREEN / CLOSED REFERENCE`  
-`SES-041 = BLOCKED / CLOSED` — Windows distributable CI pozostaje zaparkowane i nie jest częścią tej sesji.  
-`SES-042 = OPENED` — przejście z System Buildera do pierwszego konkretnego systemu P2P.
+SES-043 proved the smallest real two-node communication path:
 
-**Zasada:** repozytorium jest Source of Truth. Nie uznajemy PASS/GREEN bez rzeczywistego testu i jednoznacznego dowodu.
+```text
+NODE A ───── connection ─────> NODE B
+NODE A ───── message ────────> NODE B
+NODE A <──── response ──────── NODE B
+```
 
-## 2. Cel SES-043
+The proof uses a minimal standard-library TCP runtime on `127.0.0.1` only. This is an experimental transport choice for SES-043, **not a final P2P architecture decision**.
 
-Zbudować i udowodnić **najmniejszą możliwą, testową podstawę P2P 60-24 OneClick Evo**:
+## 2. RED → GREEN
 
-> **dwa niezależne węzły P2P potrafią nawiązać połączenie i wymienić prostą wiadomość.**
-
-To jest **test fundamentu sieci**, a nie jeszcze pełny P2P 60-24.
-
-### Relacja z System Builderem
-
-**System Builder → narzędzie budujące systemy**  
-**P2P 60-24 → pierwszy konkretny system, który ten proces ma zbudować i uruchomić.**
-
-SES-043 ma sprawdzić tę relację na najprostszym realnym przykładzie.
-
-## 3. Zakres — celowo minimalny
-
-### MUSI działać
-
-1. Uruchomienie co najmniej dwóch procesów/węzłów.
-2. Każdy węzeł ma prostą identyfikację.
-3. Węzeł A może połączyć się z węzłem B.
-4. A wysyła prostą wiadomość do B.
-5. B odbiera wiadomość i potrafi odpowiedzieć.
-6. Test automatyczny potwierdza komunikację.
-7. Istnieje jednoznaczny, powtarzalny dowód GREEN.
-
-### NIE ROBIMY teraz
-
-- Trust / LocalTrust / RealBond.
-- blockchain / token / płatności.
-- centralnego serwera.
-- libp2p.
-- rozbudowanego discovery.
-- GUI.
-- produkcyjnego bezpieczeństwa.
-- wielkiej architektury.
-- integracji z Internetem, jeśli lokalne połączenie wystarczy do dowodu.
-
-**Zasada minimalności:** używamy najprostszego mechanizmu transportowego zgodnego z dotychczasową architekturą repozytorium. Nie projektujemy całego P2P — dowodzimy pierwszego działającego połączenia.
-
-## 4. INSPECT / UNDERSTAND / GAP — wykonane
-
-Audyt repo wykazał:
-
-- brak istniejącego runtime P2P,
-- brak istniejącej implementacji UDP/socket w bieżącym runtime,
-- brak `libp2p` jako używanego transportu,
-- wcześniejsze dokumenty Beta jednoznacznie pozostawiają P2P/UDP poza zakresem zamkniętej Beta.
-
-**GAP:** nie ma istniejącej implementacji, którą można bezpiecznie REUSE/INTEGRATE.
-
-## 5. RED TEST — wykonany i potwierdzony
-
-Dodano:
+The original RED contract was kept as the acceptance test:
 
 `sessions/SES-043/test_p2p_two_nodes.py`
 
-Test uruchamia dwa niezależne procesy i wymaga przepływu:
+It starts two independent OS processes and requires `pong-from-B` in A's output.
 
-```text
-NODE A ───── connection ─────> NODE B
-NODE A ───── message ────────> NODE B
-NODE A <──── response ──────── NODE B
-```
+Implementation added:
 
-Test oczekuje rzeczywistego modułu `src.p2p.node` oraz odpowiedzi `pong-from-B`.
+- `src/p2p/__init__.py`
+- `src/p2p/node.py`
 
-### Dowód RED
+The runtime supports the minimal listen/connect/message/response flow and has no external dependency, discovery, Trust, persistence, GUI, or production-security layer.
 
-Commit:
-`d7bc03e7cf1c6e08ca133d8d4ca40171392019fb`
+## 3. GREEN evidence
 
-GitHub Actions:
-`Beta local execution` — run `34927976826`
+Dedicated workflow:
+
+`.github/workflows/ses-043-p2p.yml`
+
+GitHub Actions run:
+
+`34928265888`
 
 Job:
-`test-local-executor` — `FAILURE`
 
-Istniejący test Beta przeszedł:
-`3 passed`
+`two-node-proof`
 
-Następnie SES-043:
-`1 failed`
+Result:
 
-Błąd jest rzeczywisty i zgodny z GAP: uruchomienie `python -m src.p2p.node ...` zakończyło się `exit status 1`, ponieważ wymagany runtime P2P jeszcze nie istnieje.
+**SUCCESS / GREEN**
 
-**RED = POTWIERDZONE.**
+The executable proof therefore confirms that two independently started nodes can connect, exchange a message, and return a response.
 
-Po uzyskaniu dowodu RED tymczasowy wpis testu do workflow został usunięty. Główny workflow Beta został przywrócony bez zmiany funkcjonalnej.
+## 4. Scope boundary
 
-## 6. Granica decyzyjna po RED
+Proven:
 
-RED test ujawnił właściwą następną decyzję: **wybór minimalnego transportu i kontraktu uruchamiania węzła**.
+- two independent local nodes,
+- node identity argument,
+- connection,
+- request message,
+- response,
+- repeatable automated evidence.
 
-To jest już decyzja techniczna klasy **YELLOW** (transport/protokół/runtime boundary), a nie zwykła poprawka implementacyjna.
+Not proven and deliberately excluded:
 
-Dlatego:
+- Internet/P2P production networking,
+- discovery,
+- NAT traversal,
+- Trust / LocalTrust / RealBond,
+- security model,
+- persistence,
+- swarm/agent layer,
+- final transport architecture.
 
-- nie wybieramy samowolnie `UDP`, `TCP`, `libp2p` ani innego transportu jako architektury docelowej,
-- nie budujemy jeszcze runtime,
-- zachowujemy RED test jako kontrakt zachowania,
-- następny krok to przygotowanie minimalnej propozycji transportu zgodnej z Constitution/ADR i istniejącym repo.
+## 5. Architectural status
 
-**Rekomendacja Project Leada do rozważenia:** standard-library transport bez zewnętrznej zależności, wyłącznie dla lokalnego testu dwóch niezależnych procesów. Nie jest to jeszcze zatwierdzona architektura P2P.
+`TCP = SES-043 experimental transport only.`
 
-## 7. Kryterium sukcesu
+No claim is made that TCP is the final transport for P2P 60-24. Any broader transport/protocol architecture remains subject to the repository's YELLOW/RED decision rules.
 
-SES-043 może zostać zamknięta jako **GREEN** tylko wtedy, gdy mamy dowód:
+## 6. Final state
 
-```text
-NODE A ───── connection ─────> NODE B
-NODE A ───── message ────────> NODE B
-NODE A <──── response ──────── NODE B
+`INSPECT ✓ → UNDERSTAND ✓ → GAP ✓ → RED ✓ → IMPLEMENT ✓ → GREEN ✓ → VERIFY ✓ → DOCUMENT ✓ → COMMIT ✓`
 
-TEST RESULT = PASS
-```
+**SES-043 = GREEN / CLOSED.**
 
-## 8. Cykl pracy
-
-`INSPECT → UNDERSTAND → IDENTIFY GAP → RED TEST → IMPLEMENT → GREEN → VERIFY → DOCUMENT → COMMIT → CONTINUE`
-
-Aktualny stan:
-
-`INSPECT ✓ → UNDERSTAND ✓ → GAP ✓ → RED ✓ → IMPLEMENT GATED`
-
-## 9. Odpowiedzialność
-
-Project Lead prowadzi sesję autonomicznie w uzgodnionym zakresie, pilnuje minimalności rozwiązania, kolejności prac i końcowej weryfikacji.
-
-Decyzje YELLOW/RED wymagające zatwierdzenia człowieka nie są obchodzone przez implementację „na próbę”.
-
-## 10. Zasada końcowa
-
-**GREEN = działający test + dowód.**  
-**RED = test poprawnie ujawniający brak wymaganej zdolności.**  
-**BLOCKED = uczciwie zatrzymane, z opisanym powodem.**  
-Nigdy nie zamieniać braku dowodu w PASS.
+Next work must begin from a new requirement and a fresh audit. Beta/System Builder evidence remains unchanged.
