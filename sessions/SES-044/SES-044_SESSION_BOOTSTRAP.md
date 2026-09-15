@@ -1,7 +1,7 @@
 # SES-044 — Standalone Downloadable P2P Node
 
 **Date:** 2026-09-15  
-**Status:** VERIFICATION PENDING  
+**Status:** GREEN / CLOSED  
 **Project:** P2P 60-24 OneClick Evo  
 **Repository:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`
@@ -20,9 +20,7 @@ Verified evidence:
 
 The SES-043 TCP transport is an experimental local proof only, not a final architecture decision.
 
-## 2. User-defined next requirement
-
-The next useful deliverable is now explicit:
+## 2. User-defined requirement
 
 > **A small downloadable program that can be started as two independent nodes and make a P2P connection between them.**
 
@@ -36,73 +34,77 @@ The program must:
 - exchange a message and response;
 - be executable on the same LAN when the listener address is reachable.
 
-## 3. INSPECT → GAP
+## 3. GAP and RED
 
-Existing `src/p2p/node.py` already proves the communication primitive, but it is package-oriented and requires the repository source layout. That does not yet satisfy the simplest user-facing **download one file → run two nodes** requirement.
+Existing `src/p2p/node.py` proved the communication primitive, but it was package-oriented and required the repository source layout. The smallest coherent GAP was therefore a standalone root-level executable script.
 
-Therefore the smallest coherent GAP is a standalone root-level executable script.
-
-## 4. RED contract
-
-Added:
+RED test:
 
 `sessions/SES-044/test_downloadable_two_nodes.py`
 
-Commit:
+Commit: `4a62e3b733bd8ededbf87d6c04019e12ba013c34`
 
-`4a62e3b733bd8ededbf87d6c04019e12ba013c34`
+The test starts two independent processes using `p2p_node.py`, with A connecting to B and receiving `pong-from-B`.
 
-The test requires two independently started processes using `p2p_node.py`, with A connecting to B and receiving `pong-from-B`.
-
-## 5. Implementation
+## 4. Implementation
 
 Added:
 
 `p2p_node.py`
 
-Commit:
-
-`dc725a6040abe9cd43cc69cc3f431150c44762dd`
+Commit: `dc725a6040abe9cd43cc69cc3f431150c44762dd`
 
 The program uses only Python standard-library TCP sockets.
 
-## 6. Automated proof
-
-Added:
-
-`.github/workflows/ses-044-p2p-download.yml`
-
-Commit:
-
-`3a4aee3b0cabbc53479656b3b886c2b4ff189b78`
-
-The workflow executes the SES-044 two-node test on pushes to `main` and pull requests.
-
-## 7. User documentation
-
-Added:
+Documentation:
 
 `P2P_NODE.md`
 
-Commit:
+Commit: `17f7f04a40713b19e0e84bedb159c2ef7057f4cc`
 
-`17f7f04a40713b19e0e84bedb159c2ef7057f4cc`
+## 5. Final automated proof
 
-It contains copy/paste commands for node B and node A, including the LAN usage case.
+The SES-044 standalone test was integrated into the existing P2P CI workflow to ensure the exact test executes on `main`.
 
-## 8. Current verification boundary
+Verification commit:
 
-Implementation exists and is documented. **Do not mark SES-044 GREEN yet.**
+`0dccb7baff6b23f04347435c4ed8a001709a4999`
 
-Required final evidence:
+GitHub Actions:
 
-1. SES-044 standalone two-node CI job = SUCCESS;
-2. verify the final `main` commit contains the program, test and documentation;
-3. only then close the session with a stone.
+- run `34935150469` = **SUCCESS**;
+- job `standalone-two-node-proof` = **SUCCESS**;
+- step `Run SES-044 standalone two-node proof` = **SUCCESS**;
+- existing `two-node-proof` also remained **SUCCESS**.
 
-## 9. Hard boundaries
+This is the required positive CI evidence for the SES-044 artifact.
 
-Do not introduce without explicit requirement and appropriate decision level:
+## 6. Result
+
+SES-044 is **GREEN / CLOSED**.
+
+The repository now contains a minimal downloadable program that can be copied as one Python file and run as two independent nodes:
+
+```text
+Node B: python p2p_node.py --listen 0.0.0.0:9000 --node-id B
+Node A: python p2p_node.py --connect <IP_B>:9000 --node-id A --message ping-from-A
+```
+
+Expected response:
+
+```text
+pong-from-B
+```
+
+## 7. Stone
+
+**SES-044 stone:** the verified repository state represented by CI run `34935150469` and commit `0dccb7baff6b23f04347435c4ed8a001709a4999` proves the standalone two-node P2P requirement.
+
+No broader P2P capability is implied by this stone.
+
+## 8. Hard boundaries
+
+Not introduced:
 
 - Trust / LocalTrust / RealBond,
 - blockchain / token / payments,
@@ -115,11 +117,11 @@ Do not introduce without explicit requirement and appropriate decision level:
 - swarm/agent architecture,
 - final transport commitment.
 
-## 10. Scope
+## 9. Scope limitation
 
-SES-044 is proving a **downloadable minimal two-node communication program**, not a production P2P network.
+SES-044 proves a **downloadable minimal two-node communication program**, not a production P2P network.
 
-It does not yet prove:
+It does not prove:
 
 - discovery,
 - NAT traversal,
