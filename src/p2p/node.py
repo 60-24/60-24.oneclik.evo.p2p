@@ -1,4 +1,4 @@
-"""Minimal TCP node used by the SES-043 two-process proof."""
+"""Minimal reusable P2P node plus the SES CLI compatibility entrypoint."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import socket
 
 BUFFER_SIZE = 4096
 RESPONSE = "pong-from-B"
+CONNECT_TIMEOUT_SECONDS = 5
 
 
 def _parse_address(value: str) -> tuple[str, int]:
@@ -29,30 +30,59 @@ def _receive_line(conn: socket.socket) -> str:
     return bytes(data).split(b"\n", 1)[0].decode("utf-8")
 
 
-def _listen(address: str, node_id: str) -> int:
-    host, port = _parse_address(address)
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind((host, port))
-        server.listen(1)
-        conn, _peer = server.accept()
+class P2PNode:
+    """Small dependency-free node boundary for the concrete P2P system."""
+
+    def __init__(self, node_id: str, host: str = "127.0.0.1", port: int = 0) -> None:
+        if not node_id:
+            raise ValueError("node_id must not be empty")
+        self.node_id = node_id
+        self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._server.bind((host, port))
+        self._server.listen(1)
+        self.bound_host, self.bound_port = self._server.getsockname()
+
+    def listen_once(self) -> str:
+        conn, _peer = self._server.accept()
         with conn:
             _receive_line(conn)
             conn.sendall(f"{RESPONSE}\n".encode("utf-8"))
+        return RESPONSE
+
+    def send(self, host: str, port: int, message: str) -> str:
+        with socket.create_connection(
+            (host, port), timeout=CONNECT_TIMEOUT_SECONDS
+        ) as conn:
+            conn.sendall(f"{message}\n".encode("utf-8"))
+            return _receive_line(conn)
+
+    def close(self) -> None:
+        self._server.close()
+
+
+def _listen(address: str, node_id: str) -> int:
+    host, port = _parse_address(address)
+    node = P2PNode(node_id, host, port)
+    try:
+        node.listen_once()
+    finally:
+        node.close()
     return 0
 
 
 def _connect(address: str, node_id: str, message: str) -> int:
     host, port = _parse_address(address)
-    with socket.create_connection((host, port), timeout=5) as conn:
-        conn.sendall(f"{message}\n".encode("utf-8"))
-        response = _receive_line(conn)
-    print(response)
+    client = P2PNode(node_id)
+    try:
+        print(client.send(host, port, message))
+    finally:
+        client.close()
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Minimal SES-043 P2P node")
+    parser = argparse.ArgumentParser(description="Minimal P2P node")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--listen")
     mode.add_argument("--connect")
