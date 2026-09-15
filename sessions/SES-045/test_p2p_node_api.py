@@ -9,7 +9,7 @@ def test_two_nodes_exchange_message_through_public_api():
     received = {}
 
     def serve():
-        received["response"] = server.listen_once("127.0.0.1", 0)
+        received["response"] = server.listen_once()
 
     thread = threading.Thread(target=serve)
     thread.start()
@@ -18,3 +18,5 @@ def test_two_nodes_exchange_message_through_public_api():
     thread.join(timeout=5)
 
     assert received["response"] == "pong-from-B"
+    server.close()
+    client.close()
