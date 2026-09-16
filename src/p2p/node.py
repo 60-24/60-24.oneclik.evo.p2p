@@ -61,8 +61,7 @@ class P2PNode:
             (host, port), timeout=CONNECT_TIMEOUT_SECONDS
         ) as conn:
             conn.sendall(f"{hello(self.node_id)}\n".encode("utf-8"))
-            if not parse_welcome(_receive_line(conn), expected_node_id=self.node_id):
-                raise ValueError("handshake failed")
+            parse_welcome(_receive_line(conn))
             conn.sendall(f"{message}\n".encode("utf-8"))
             return _receive_line(conn)
 
