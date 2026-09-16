@@ -1,7 +1,7 @@
 # SES-046 — Microkernel Genealogy & Terminology Boundary
 
 **Date:** 2026-09-16  
-**Status:** AUDIT CHECKPOINT  
+**Status:** GREEN CHECKPOINT — handshake boundary proven  
 **Purpose:** evidence-first reconciliation of Microkernel / Kernel-DNA / OmniKernel / Node / Module terminology before new implementation or ADR.
 
 ## 1. Authority rule
@@ -143,30 +143,56 @@ A useful provisional separation is:
 
 This diagram is **provisional**, not frozen architecture.
 
-## 6. Immediate implementation rule
+## 6. SES-046 implementation checkpoint — GREEN
+
+A real repository GAP was identified: SES-045 exchanged a message but did not explicitly exchange and verify node identity before the message.
+
+A minimal RED test was added:
+
+`sessions/SES-046/test_minikernel_handshake.py`
+
+The smallest implementation added:
+
+- `src/p2p/protocol.py` with explicit `HELLO` / `WELCOME` framing;
+- peer identity parsing;
+- `P2PNode.last_peer_id`;
+- handshake before application message exchange.
+
+Existing public API `P2PNode.send()` and `listen_once()` was preserved.
+
+CI evidence for commit `cbe4a12d53cda8591d45f5f6089fb237d33c8a66`:
+
+- workflow `SES-045 concrete P2P node`, run `35067174398` = SUCCESS;
+- `ses-046-handshake` = SUCCESS;
+- `concrete-node-api` = SUCCESS;
+- `regression-standalone-two-node` = SUCCESS.
+
+This proves the handshake extension without breaking the SES-044/045 regression boundary.
+
+## 7. Immediate implementation rule
 
 Do not create ADR-014 for Module Marketplace yet.
 
 Do not add discovery, routing, trust, storage, consensus, GUI, marketplace or AI runtime to the minimal foundation.
 
-First determine whether the existing SES-045 `P2PNode` is already the network portion of the required minimal runtime and identify the smallest missing boundary around it.
+The next change must again come from an observed repository GAP and the smallest justified boundary.
 
-## 7. Next audit action
+## 8. Next audit action
 
-Inspect the current repository implementation and tests for:
+Inspect the current repository implementation and tests for the next concrete missing requirement, with priority on:
 
-1. `P2PNode` lifecycle and public API;
-2. identity assumptions;
-3. message/protocol boundary;
-4. event representation;
-5. state ownership;
-6. logging/observability;
-7. module/capability hooks.
+1. reconnect/disconnect semantics;
+2. malformed protocol handling;
+3. event/log observability;
+4. identity contract boundary;
+5. whether a separate `Peer` abstraction is actually justified.
 
-Then formulate one concrete GAP and one RED test. No artificial RED.
+Do not introduce all five at once. Select the first smallest evidence-backed GAP and create one RED test.
 
-## 8. Gate
+## 9. Gate
 
-**No new architecture is frozen by this document.**
+**Handshake boundary = GREEN.**
 
-The next implementation may proceed only from an observed repository GAP and the smallest justified change.
+**Microkernel/Node terminology = still provisional.**
+
+No new architecture is frozen by this checkpoint.
