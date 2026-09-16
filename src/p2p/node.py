@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import socket
 
+from .protocol import hello, parse_hello, parse_welcome, welcome
+
 BUFFER_SIZE = 4096
 RESPONSE = "pong-from-B"
 CONNECT_TIMEOUT_SECONDS = 5
@@ -37,6 +39,7 @@ class P2PNode:
         if not node_id:
             raise ValueError("node_id must not be empty")
         self.node_id = node_id
+        self.last_peer_id: str | None = None
         self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._server.bind((host, port))
@@ -46,6 +49,9 @@ class P2PNode:
     def listen_once(self) -> str:
         conn, _peer = self._server.accept()
         with conn:
+            peer_id = parse_hello(_receive_line(conn))
+            self.last_peer_id = peer_id
+            conn.sendall(f"{welcome(self.node_id)}\n".encode("utf-8"))
             _receive_line(conn)
             conn.sendall(f"{RESPONSE}\n".encode("utf-8"))
         return RESPONSE
@@ -54,6 +60,9 @@ class P2PNode:
         with socket.create_connection(
             (host, port), timeout=CONNECT_TIMEOUT_SECONDS
         ) as conn:
+            conn.sendall(f"{hello(self.node_id)}\n".encode("utf-8"))
+            if not parse_welcome(_receive_line(conn), expected_node_id=self.node_id):
+                raise ValueError("handshake failed")
             conn.sendall(f"{message}\n".encode("utf-8"))
             return _receive_line(conn)
 
