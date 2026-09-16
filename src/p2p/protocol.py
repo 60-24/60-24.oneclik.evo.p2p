@@ -28,5 +28,11 @@ def welcome(node_id: str) -> str:
     return f"{WELCOME} {node_id}"
 
 
-def parse_welcome(message: str, expected_node_id: str) -> bool:
-    return message == welcome(expected_node_id)
+def parse_welcome(message: str) -> str:
+    prefix = f"{WELCOME} "
+    if not message.startswith(prefix):
+        raise ValueError("handshake failed")
+    node_id = message[len(prefix) :]
+    if not node_id or "\n" in node_id or "\r" in node_id:
+        raise ValueError("invalid peer identity")
+    return node_id
