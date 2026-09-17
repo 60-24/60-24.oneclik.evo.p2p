@@ -40,6 +40,7 @@ class P2PNode:
             raise ValueError("node_id must not be empty")
         self.node_id = node_id
         self.last_peer_id: str | None = None
+        self.last_message: str | None = None
         self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._server.bind((host, port))
@@ -52,7 +53,7 @@ class P2PNode:
             peer_id = parse_hello(_receive_line(conn))
             self.last_peer_id = peer_id
             conn.sendall(f"{welcome(self.node_id)}\n".encode("utf-8"))
-            _receive_line(conn)
+            self.last_message = _receive_line(conn)
             conn.sendall(f"{RESPONSE}\n".encode("utf-8"))
         return RESPONSE
 
