@@ -1,0 +1,47 @@
+name: P2P Linux executable
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux-p2p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build and test tools
+        run: python -m pip install --upgrade pip pyinstaller pytest
+      - name: Run P2P regression tests
+        run: |
+          python -m pytest -q sessions/SES-044/test_downloadable_two_nodes.py
+          python -m pytest -q sessions/SES-046/test_minikernel_handshake.py
+          python -m pytest -q sessions/SES-047/test_lifecycle_protocol.py
+          python -m pytest -q sessions/SES-049/test_message_delivery.py
+      - name: Build Linux executable
+        run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
+      - name: Smoke test two-node executable
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./dist/P2P60-24Node --listen 127.0.0.1:39001 --node-id B >server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          sleep 1
+          response="$(./dist/P2P60-24Node --connect 127.0.0.1:39001 --node-id A --message hello-from-A)"
+          test "$response" = "pong-from-B"
+          wait "$server_pid"
+      - name: Package artifact
+        run: tar -czf P2P60-24Node-linux-x86_64.tar.gz -C dist P2P60-24Node
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: P2P60-24Node-linux-x86_64
+          path: P2P60-24Node-linux-x86_64.tar.gz
