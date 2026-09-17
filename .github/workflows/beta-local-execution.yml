@@ -37,7 +37,20 @@ jobs:
 
       - name: Build Windows executable
         shell: pwsh
-        run: python -m PyInstaller --onefile --name SystemBuilderDemo --add-data 'src;src' --add-data 'sessions;sessions' demo/system_builder_demo.py
+        run: >
+          python -m PyInstaller
+          --onefile
+          --name SystemBuilderDemo
+          --add-data "src;src"
+          --add-data "sessions;sessions"
+          --add-data "demo;demo"
+          demo/system_builder_demo.py
+
+      - name: Verify bundled source files
+        shell: pwsh
+        run: |
+          if (-not (Test-Path src/system_builder/entrypoint.py)) { throw 'Production entrypoint is missing from the checkout.' }
+          if (-not (Test-Path sessions/SES-007/intent_envelope.py)) { throw 'Required session source is missing from the checkout.' }
 
       - name: Run packaged demo
         shell: pwsh
