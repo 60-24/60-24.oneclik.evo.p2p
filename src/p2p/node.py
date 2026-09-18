@@ -62,7 +62,7 @@ class P2PNode:
             (host, port), timeout=CONNECT_TIMEOUT_SECONDS
         ) as conn:
             conn.sendall(f"{hello(self.node_id)}\n".encode("utf-8"))
-            parse_welcome(_receive_line(conn))
+            self.last_peer_id = parse_welcome(_receive_line(conn))
             conn.sendall(f"{message}\n".encode("utf-8"))
             return _receive_line(conn)
 
