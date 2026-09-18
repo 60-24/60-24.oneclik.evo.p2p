@@ -45,6 +45,10 @@ jobs:
           --add-data "src;src"
           --add-data "sessions;sessions"
           --add-data "demo;demo"
+          --hidden-import json
+          --hidden-import hashlib
+          --hidden-import re
+          --hidden-import copy
           demo/system_builder_demo.py
 
       - name: Verify bundled source files
