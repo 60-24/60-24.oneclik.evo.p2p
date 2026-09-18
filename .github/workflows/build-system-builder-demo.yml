@@ -38,14 +38,31 @@ jobs:
         run: python -m pytest -q sessions/SES-037/test_minimal_new_requirement.py
 
       - name: Build Windows executable
-        run: >-
-          python -m PyInstaller --onefile --name SystemBuilderDemo
+        shell: pwsh
+        run: >
+          python -m PyInstaller
+          --onefile
+          --name SystemBuilderDemo
           --add-data "src;src"
           --add-data "sessions;sessions"
+          --add-data "demo;demo"
+          --hidden-import json
+          --hidden-import hashlib
+          --hidden-import re
+          --hidden-import copy
           demo/system_builder_demo.py
+
+      - name: Verify bundled source files
+        shell: pwsh
+        run: |
+          if (-not (Test-Path src/system_builder/entrypoint.py)) { throw 'Production entrypoint is missing from the checkout.' }
+          if (-not (Test-Path sessions/SES-007/intent_envelope.py)) { throw 'Required session source is missing from the checkout.' }
 
       - name: Run packaged demo
         shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: 1
         run: |
           Remove-Item -Recurse -Force demo-output -ErrorAction SilentlyContinue
           .\dist\SystemBuilderDemo.exe --output demo-output
