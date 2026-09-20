@@ -26,6 +26,7 @@ jobs:
           python -m pytest -q sessions/SES-049/test_message_delivery.py
           python -m pytest -q sessions/SES-055/test_bidirectional_identity.py
           python -m pytest -q sessions/SES-058/test_non_loopback_ipv4.py
+          python -m pytest -q sessions/SES-059/test_cli_errors.py
       - name: Build Linux executable
         run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
       - name: Package artifact
