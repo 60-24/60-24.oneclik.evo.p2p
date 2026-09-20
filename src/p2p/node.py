@@ -54,6 +54,11 @@ class P2PNode:
             self.last_peer_id = peer_id
             conn.sendall(f"{welcome(self.node_id)}\n".encode("utf-8"))
             self.last_message = _receive_line(conn)
+            print(
+                f"node {self.node_id} received from {self.last_peer_id}: "
+                f"{self.last_message}",
+                flush=True,
+            )
             conn.sendall(f"{RESPONSE}\n".encode("utf-8"))
         return RESPONSE
 
