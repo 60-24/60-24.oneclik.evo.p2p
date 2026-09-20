@@ -88,6 +88,9 @@ def _listen(address: str, node_id: str) -> int:
         return 1
     try:
         node.listen_once()
+    except ValueError as exc:
+        print(f"ERROR: Invalid peer handshake: {exc}.", file=sys.stderr)
+        return 1
     except OSError as exc:
         print(f"ERROR: Listening failed: {exc}.", file=sys.stderr)
         return 1
@@ -106,6 +109,9 @@ def _connect(address: str, node_id: str, message: str) -> int:
     try:
         response = client.send(host, port, message)
         print(response)
+    except ValueError as exc:
+        print(f"ERROR: Invalid peer handshake: {exc}.", file=sys.stderr)
+        return 1
     except socket.timeout:
         print("ERROR: Connection timed out. Check that Node B is running and the address/port are correct.", file=sys.stderr)
         return 1
