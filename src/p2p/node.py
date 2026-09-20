@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import socket
+import sys
 
 from .protocol import hello, parse_hello, parse_welcome, welcome
 
@@ -76,20 +77,44 @@ class P2PNode:
 
 
 def _listen(address: str, node_id: str) -> int:
-    host, port = _parse_address(address)
-    node = P2PNode(node_id, host, port)
+    try:
+        host, port = _parse_address(address)
+        node = P2PNode(node_id, host, port)
+    except ValueError as exc:
+        print(f"ERROR: {exc}. Use the format IP:PORT (for example 0.0.0.0:9000).", file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"ERROR: Cannot start listening: {exc}. Check that the port is available.", file=sys.stderr)
+        return 1
     try:
         node.listen_once()
+    except OSError as exc:
+        print(f"ERROR: Listening failed: {exc}.", file=sys.stderr)
+        return 1
     finally:
         node.close()
     return 0
 
 
 def _connect(address: str, node_id: str, message: str) -> int:
-    host, port = _parse_address(address)
+    try:
+        host, port = _parse_address(address)
+    except ValueError as exc:
+        print(f"ERROR: {exc}. Use the format IP:PORT (for example 192.168.1.10:9000).", file=sys.stderr)
+        return 1
     client = P2PNode(node_id)
     try:
-        print(client.send(host, port, message))
+        response = client.send(host, port, message)
+        print(response)
+    except socket.timeout:
+        print("ERROR: Connection timed out. Check that Node B is running and the address/port are correct.", file=sys.stderr)
+        return 1
+    except ConnectionRefusedError:
+        print("ERROR: Connection refused. Make sure Node B is listening at this address and port.", file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"ERROR: Cannot connect: {exc}.", file=sys.stderr)
+        return 1
     finally:
         client.close()
     return 0
