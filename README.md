@@ -71,7 +71,7 @@ Available modes and arguments:
 
 ## Troubleshooting
 
-The CLI reports expected connection and address errors as short messages and exits with code `1`; it does not expose a Python traceback for these cases.
+The CLI reports expected connection, address, and handshake errors as short messages and exits with code `1`; it does not expose a Python traceback for these cases.
 
 ### Invalid address
 
@@ -111,9 +111,9 @@ ERROR: Cannot start listening: ... Check that the port is available.
 
 Check whether another process already uses the port. Prefer an available high port such as `39001` or `9000`.
 
-### Missing message
+### Malformed peer handshake
 
-When `--connect` is used without `--message`, the CLI reports the missing required argument.
+If a peer sends an invalid HELLO or WELCOME during the handshake, the CLI rejects it with an actionable error and exits with code `1`, without exposing a Python traceback.
 
 ## Current boundary
 
@@ -136,6 +136,8 @@ SES-057 verified the packaged Linux executable with two independent processes, H
 SES-058 extended the executable proof with a non-loopback IPv4 path and automated verification.
 
 SES-059 added actionable CLI error handling, regression tests, and user troubleshooting documentation.
+
+SES-060 extended the CLI error boundary to malformed peer handshakes on both listener and connector paths.
 
 The current GitHub Actions build publishes the artifact:
 

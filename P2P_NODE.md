@@ -47,14 +47,14 @@ Node B records the peer identity and received application message.
 - application message A → B;
 - response B → A;
 - one-file PyInstaller executable;
-- GitHub Actions artifact.
+- GitHub Actions artifact;
+- malformed peer handshake is handled as a user-facing CLI error on both sides.
 
 ## Historical SES-044
 
 `sessions/SES-044/` is retained as historical evidence. Its test targets the former standalone `p2p_node.py` implementation and is no longer part of the current product CI proof.
 
 The former root-level `p2p_node.py` runtime is retired to avoid two competing P2P runtimes.
-
 
 ## Troubleshooting
 
@@ -64,3 +64,4 @@ The CLI reports user-facing errors instead of Python tracebacks for common conne
 - **Connection refused:** check that Node B is running and listening on the same IP and port.
 - **Connection timed out:** check the Node B address, port, network reachability, and firewall rules.
 - **Listening error:** check that the selected port is available.
+- **Malformed handshake:** the peer must complete the HELLO/WELCOME handshake; invalid handshake input is rejected with an `ERROR:` message and exit code `1`.
