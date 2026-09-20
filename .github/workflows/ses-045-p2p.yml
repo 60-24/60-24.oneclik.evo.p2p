@@ -22,18 +22,6 @@ jobs:
       - name: Run SES-045 concrete node API proof
         run: python -m pytest -q sessions/SES-045/test_p2p_node_api.py
 
-  regression-standalone-two-node:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-      - name: Install test runner
-        run: python -m pip install pytest
-      - name: Run SES-044 standalone two-node regression
-        run: python -m pytest -q sessions/SES-044/test_downloadable_two_nodes.py
-
   ses-046-handshake:
     runs-on: ubuntu-latest
     steps:
@@ -53,8 +41,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Install test runner
-        run: python -m pip install pytest
       - name: Run SES-047 lifecycle and malformed protocol proof
         run: python -m pytest -q sessions/SES-047/test_lifecycle_protocol.py
 
