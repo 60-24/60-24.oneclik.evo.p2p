@@ -25,6 +25,7 @@ jobs:
           python -m pytest -q sessions/SES-047/test_lifecycle_protocol.py
           python -m pytest -q sessions/SES-049/test_message_delivery.py
           python -m pytest -q sessions/SES-055/test_bidirectional_identity.py
+          python -m pytest -q sessions/SES-058/test_non_loopback_ipv4.py
       - name: Build Linux executable
         run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
       - name: Package artifact
@@ -45,6 +46,17 @@ jobs:
           wait "$server_pid"
           grep -q "node B received from A" server.log
           grep -q "hello-from-A" server.log
+          ./P2P60-24Node --listen 0.0.0.0:39002 --node-id B >lan-server.log 2>&1 &
+          lan_server_pid=$!
+          trap 'kill "$server_pid" "$lan_server_pid" 2>/dev/null || true' EXIT
+          sleep 1
+          lan_host="$(python -c 'import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(("1.1.1.1", 80)); print(s.getsockname()[0]); s.close()')"
+          case "$lan_host" in 127.*) echo "no non-loopback IPv4 address"; exit 1;; esac
+          lan_response="$(./P2P60-24Node --connect "$lan_host:39002" --node-id A --message lan-check)"
+          test "$lan_response" = "pong-from-B"
+          wait "$lan_server_pid"
+          grep -q "node B received from A" lan-server.log
+          grep -q "lan-check" lan-server.log
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
