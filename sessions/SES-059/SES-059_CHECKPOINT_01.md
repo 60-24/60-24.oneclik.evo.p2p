@@ -45,3 +45,34 @@ Nie zmieniano kodu runtime.
 Sprawdzić rzeczywisty scenariusz pobrania artefaktu i uruchomienia dwóch niezależnych procesów oraz ustalić, czy potrzebny jest minimalny mechanizm stabilnej dystrybucji.
 
 Nie wprowadzać GUI ani discovery bez osobnego rzeczywistego GAP-u.
+
+
+## STEP 4 — RED / STEP 5 — MINIMAL FIX
+
+Audyt zewnętrzny potwierdził rzeczywisty usability gap w error path CLI: surowe `ValueError`, `ConnectionRefusedError` i `socket.timeout` mogły kończyć program tracebackiem.
+
+Zastosowano minimalny fix:
+- przechwycenie błędów na granicy CLI,
+- komunikat na stderr,
+- kod wyjścia `1`,
+- bez zmian protokołu ani architektury.
+
+Dodano testy:
+- błędny adres,
+- odrzucone połączenie,
+- `--help`.
+
+CI został rozszerzony o `sessions/SES-059/test_cli_errors.py`.
+
+Dokumentację `P2P_NODE.md` rozszerzono o troubleshooting.
+
+## Commits
+
+- runtime fix: `baf9d1707ddc7f1fc9b00d7c7e3e1d64698830ab`
+- CLI tests: `ed1d83a01c4e324e718d0984768f121939dbfa79`
+- CI: `ee2f61bab0a854d6669503a54237049014f25af5`
+- docs: `241009a48fa7de2dd97512a1cd1db9f29ebafffa`
+
+## Status
+
+Implementation complete. Final GREEN requires the current main CI run to complete successfully.
