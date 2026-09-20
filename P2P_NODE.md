@@ -1,52 +1,56 @@
-# Standalone P2P node
+# Downloadable P2P Node
 
-Minimal two-process P2P communication proof for P2P 60-24 OneClick Evo.
+Current downloadable two-node runtime for P2P 60-24 OneClick Evo.
 
-## Requirements
+## Build
 
-- Python 3.x
-- No external packages
-- Two terminals or two machines that can reach the listening address
+GitHub Actions builds a self-contained Linux executable from the current runtime:
 
-## Start node B
-
-```bash
-python p2p_node.py --listen 0.0.0.0:9000 --node-id B
+```text
+demo/p2p_node_cli.py → src/p2p/node.py → P2P60-24Node
 ```
 
-## Start node A
+The workflow is:
 
-On the same machine:
+`.github/workflows/build-p2p-linux.yml`
+
+## Run
+
+Download the GitHub Actions artifact `P2P60-24Node-linux-x86_64` and extract it.
+
+Start node B:
 
 ```bash
-python p2p_node.py --connect 127.0.0.1:9000 --node-id A --message ping-from-A
+./P2P60-24Node --listen 0.0.0.0:9000 --node-id B
 ```
 
-For another machine, replace `127.0.0.1` with the reachable IP address of node B.
+Start node A:
 
-Expected result on node A:
+```bash
+./P2P60-24Node --connect <NODE-B-IP>:9000 --node-id A --message hello-from-A
+```
+
+Expected response on node A:
 
 ```text
 pong-from-B
 ```
 
-Node B also prints the received message.
+Node B records the peer identity and received application message.
 
-## What this proves
+## Current proof boundary
 
-- two independently started processes;
-- TCP connection A → B;
-- message A → B;
-- response B → A.
+- two independent executable processes;
+- current `src/p2p` runtime;
+- HELLO/WELCOME handshake;
+- bidirectional node identity;
+- application message A → B;
+- response B → A;
+- one-file PyInstaller executable;
+- GitHub Actions artifact.
 
-## Scope
+## Historical SES-044
 
-This is a minimal experimental communication primitive. It does **not** claim to provide discovery, NAT traversal, authentication, encryption, persistence, Internet production readiness, or a final P2P transport architecture.
+`sessions/SES-044/` is retained as historical evidence. Its test targets the former standalone `p2p_node.py` implementation and is no longer part of the current product CI proof.
 
-Automated proof:
-
-`sessions/SES-044/test_downloadable_two_nodes.py`
-
-CI workflow:
-
-`.github/workflows/ses-044-p2p-download.yml`
+The former root-level `p2p_node.py` runtime is retired to avoid two competing P2P runtimes.
