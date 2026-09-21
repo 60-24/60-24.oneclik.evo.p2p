@@ -1,0 +1,72 @@
+name: P2P Runtime Demo
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "demo/p2p_node_cli.py"
+      - "src/p2p/**"
+      - ".github/workflows/p2p-demo.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install demo tools
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Build demo executable
+        run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
+
+      - name: Run Node A ↔ Node B demo
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== P2P 60-24 DEMO ==="
+
+          test_dir="$(mktemp -d)"
+          cp dist/P2P60-24Node "$test_dir/P2P60-24Node"
+          chmod +x "$test_dir/P2P60-24Node"
+          cd "$test_dir"
+
+          ./P2P60-24Node --listen 127.0.0.1:39101 --node-id B >server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          sleep 1
+
+          echo "Node B: STARTED"
+
+          response="$(./P2P60-24Node --connect 127.0.0.1:39101 --node-id A --message hello-from-A)"
+
+          echo "Node A: CONNECTED"
+          echo "Handshake: OK"
+          echo "Message: hello-from-A"
+          echo "Response: $response"
+
+          test "$response" = "pong-from-B"
+          grep -q "node B received from A" server.log
+          grep -q "hello-from-A" server.log
+
+          wait "$server_pid"
+
+          echo "Identity: A ↔ B"
+          echo "=== DEMO PASS ==="
+
+      - name: Package demo artifact
+        run: tar -czf P2P60-24Node-demo-linux-x86_64.tar.gz -C dist P2P60-24Node
+
+      - name: Upload demo artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: P2P60-24Node-demo-linux-x86_64
+          path: P2P60-24Node-demo-linux-x86_64.tar.gz
