@@ -11,6 +11,7 @@ from .protocol import hello, parse_hello, parse_welcome, welcome
 BUFFER_SIZE = 4096
 RESPONSE = "pong-from-B"
 CONNECT_TIMEOUT_SECONDS = 5
+LISTEN_TIMEOUT_SECONDS = 5
 
 
 def _parse_address(value: str) -> tuple[str, int]:
@@ -50,6 +51,7 @@ class P2PNode:
 
     def listen_once(self) -> str:
         conn, _peer = self._server.accept()
+        conn.settimeout(LISTEN_TIMEOUT_SECONDS)
         with conn:
             peer_id = parse_hello(_receive_line(conn))
             self.last_peer_id = peer_id
