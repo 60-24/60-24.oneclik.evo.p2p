@@ -11,7 +11,7 @@ from .protocol import hello, parse_hello, parse_welcome, welcome
 BUFFER_SIZE = 4096
 RESPONSE = "pong-from-B"
 CONNECT_TIMEOUT_SECONDS = 5
-LISTEN_TIMEOUT_SECONDS = 5
+LISTEN_TIMEOUT_SECONDS = 2
 
 
 def _parse_address(value: str) -> tuple[str, int]:
