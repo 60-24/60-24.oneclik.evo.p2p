@@ -4,7 +4,24 @@ Minimal, standalone P2P runtime for direct Node A ↔ Node B communication.
 
 ## Download and run
 
-The repository publishes a self-contained Linux x86_64 executable named `P2P60-24Node` as a GitHub Actions artifact.
+The repository publishes a self-contained Linux x86_64 executable named `P2P60-24Node` as the GitHub Actions artifact `P2P60-24Node-linux-x86_64`.
+
+### 0. Download and extract the artifact
+
+1. Open the [P2P Linux executable workflow](https://github.com/60-24/60-24.oneclik.evo.p2p/actions/workflows/build-p2p-linux.yml).
+2. Open a successful run on `main`.
+3. In the run's **Artifacts** section, download `P2P60-24Node-linux-x86_64`.
+4. Extract the downloaded GitHub artifact archive, then extract the included tarball:
+
+```bash
+unzip P2P60-24Node-linux-x86_64.zip
+mkdir P2P60-24Node-linux-x86_64
+ tar -xzf P2P60-24Node-linux-x86_64/P2P60-24Node-linux-x86_64.tar.gz -C P2P60-24Node-linux-x86_64
+cd P2P60-24Node-linux-x86_64
+chmod +x P2P60-24Node
+```
+
+The executable is self-contained: after extraction it can be run from this directory without a checkout, Python installation, or repository files. It targets Linux x86_64. GitHub Actions artifacts are retained according to the repository's Actions retention policy; for a permanent public download, a release asset would be a separate distribution decision and is not required for this CI proof.
 
 ### 1. Start Node B
 
@@ -35,6 +52,8 @@ Expected output from Node B:
 ```text
 node B received from A: hello-from-A
 ```
+
+The two commands use the same freshly downloaded executable. The executable performs TCP connection, HELLO/WELCOME handshake, peer identification, application message delivery, and the response.
 
 ### 3. Use on a local network (LAN)
 
@@ -139,7 +158,8 @@ SES-059 added actionable CLI error handling, regression tests, and user troubles
 
 SES-060 extended the CLI error boundary to malformed peer handshakes on both listener and connector paths.
 
+SES-063 confirmed that the current packaged executable, artifact workflow, and user instructions cover the independent-user path from download through the first P2P exchange. The exact CI proof is recorded in `sessions/SES-063/SES-063_CHECKPOINT_01.md`.
+
 The current GitHub Actions build publishes the artifact:
 
 `P2P60-24Node-linux-x86_64`
-
