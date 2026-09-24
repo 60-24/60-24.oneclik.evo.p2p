@@ -2,6 +2,17 @@
 
 Minimal, standalone P2P runtime for direct Node A ↔ Node B communication.
 
+
+## Understand the project
+
+The README is the operational guide: it explains how to download, run, and verify the current Node A ↔ Node B runtime.
+
+For the broader story — why the project exists, how the idea evolved, the major sessions and milestones, what was actually built, how problems were found and fixed, why tests and evidence matter, and what the current GAP-066 means — see:
+
+**[Project Overview for Humans](docs/PROJECT_OVERVIEW_FOR_HUMANS.md)**
+
+This document is part of the project's supporting documentation and is intended to make the technical README understandable without requiring programming knowledge.
+
 ## Download and run
 
 The repository publishes a self-contained Linux x86_64 executable named `P2P60-24Node` as the GitHub Actions artifact `P2P60-24Node-linux-x86_64`.
