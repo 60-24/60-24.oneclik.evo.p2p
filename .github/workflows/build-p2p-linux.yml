@@ -32,6 +32,7 @@ jobs:
           python -m pytest -q sessions/SES-061/test_incomplete_handshake_timeout.py
           python -m pytest -q sessions/SES-064/test_identity_transport_binding.py
           python -m pytest -q sessions/SES-065/test_persistent_identity.py
+          python -m pytest -q sessions/SES-067/test_frame_size_limit.py
       - name: Build Linux executable
         run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
       - name: Package artifact
