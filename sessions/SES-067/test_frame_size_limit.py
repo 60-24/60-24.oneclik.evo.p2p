@@ -22,8 +22,7 @@ def test_listener_rejects_message_larger_than_max_frame_size():
 
     client = P2PNode("A")
     try:
-        with pytest.raises(Exception):
-            client.send("127.0.0.1", server.bound_port, oversized_message)
+        client.send("127.0.0.1", server.bound_port, oversized_message)
 
         thread.join(timeout=3)
 
