@@ -93,7 +93,7 @@ class P2PNode:
             self.last_peer_id = peer_id
             self.last_message = _receive_line(conn)
             print(
-                f"node {self.label} received from {self.last_peer_id}: "
+                f"node {self.label} received from {peer_label}: "
                 f"{self.last_message}",
                 flush=True,
             )
