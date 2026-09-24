@@ -142,7 +142,7 @@ WELCOME (NodeID + public key + server challenge + signature)
 AUTH   (signature proving possession of the client private key)
 ```
 
-`NodeID = SHA-256(public key)`. A peer is recorded in `last_peer_id` only after proof-of-possession succeeds. The CLI `--node-id` value remains a local display label; it is not accepted as a cryptographic identity.
+`NodeID = SHA-256(public key)`. A peer is recorded in `last_peer_id` only after proof-of-possession succeeds. The CLI `--node-id` value remains a local display label; it is not accepted as a cryptographic identity. The CLI persists the Ed25519 private key in the local user identity store under `~/.p2p60-24/`, using a stable label-derived file name, so the same NodeID survives process restarts. A corrupted existing identity file is rejected rather than silently replaced.
 
 This is authentication of the presented key, not a global trust or authorization system.
 
@@ -162,7 +162,7 @@ This is a minimal runtime proof, not yet a production-ready P2P product. It does
 - automatic installation,
 - central relay infrastructure.
 
-The current phase proves the direct Node A ↔ Node B runtime and its executable delivery path. It does not claim production security, Internet-wide connectivity, or automatic discovery.
+The current phase proves the direct Node A ↔ Node B runtime, authenticated peer identity, and persistence of the local cryptographic identity across process restarts. It does not claim production security, Internet-wide connectivity, or automatic discovery.
 
 ## Verified executable proof
 
@@ -179,3 +179,4 @@ SES-063 confirmed that the current packaged executable, artifact workflow, and u
 The current GitHub Actions build publishes the artifact:
 
 `P2P60-24Node-linux-x86_64`
+\n\nSES-065 verified persistent Ed25519 identity: the same local identity store produces the same public key and NodeID after restart, while a corrupt identity store is rejected. The private key remains local; no PKI or global identity service is introduced.\n
