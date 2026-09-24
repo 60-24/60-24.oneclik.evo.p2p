@@ -18,7 +18,7 @@ def test_two_nodes_exchange_identity_before_message():
     thread.join(timeout=5)
 
     assert received["response"] == "pong-from-B"
-    assert server.last_peer_id == "A"
+    assert server.last_peer_id == client.node_id
 
     server.close()
     client.close()
