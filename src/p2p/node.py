@@ -72,7 +72,7 @@ class P2PNode:
         conn, _peer = self._server.accept()
         conn.settimeout(LISTEN_TIMEOUT_SECONDS)
         with conn:
-            peer_id, peer_public_key, client_challenge = parse_hello(
+            peer_id, peer_public_key, client_challenge, peer_label = parse_hello(
                 _receive_line(conn)
             )
             server_challenge = secrets.token_bytes(32)
@@ -106,7 +106,7 @@ class P2PNode:
         ) as conn:
             client_challenge = secrets.token_bytes(32)
             conn.sendall(
-                f"{hello(self.node_id, self.public_key, client_challenge)}\n".encode(
+                f"{hello(self.node_id, self.public_key, client_challenge, self.label)}\n".encode(
                     "utf-8"
                 )
             )
