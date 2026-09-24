@@ -4,7 +4,7 @@
 **Repo:** `60-24/60-24.oneclik.evo.p2p`  
 **Branch:** `main`  
 **Data:** 2026-09-24  
-**Status:** OPEN — IMPLEMENTED, oczekuje na GREEN CI
+**Status:** GREEN — CLOSED — STONE
 
 ## Wynik audytu
 
@@ -97,8 +97,25 @@ CI musi jeszcze potwierdzić:
 - packaged executable GREEN;
 - LAN smoke GREEN.
 
+## GREEN evidence
+
+- P2P Linux workflow: run `35938275053`
+- Build job: `107440184493`
+- SES-064 test: **2 passed**
+- istniejące testy SES-046/047/049/055/058/059/061: **GREEN**
+- packaged executable smoke test: **GREEN**
+- LAN smoke test: **GREEN**
+- SES-043 two-node proof: run `35938275062`, **GREEN**
+- P2P demo: run `35938275067`, **GREEN**
+- concrete-node API: **GREEN**
+
+## Boundary
+
+SES-064 ustanawia proof-of-possession dla bieżącego klucza Ed25519 procesu. Klucz jest obecnie generowany przy uruchomieniu; trwała tożsamość między restartami nie jest częścią tego fixu i pozostaje osobnym przyszłym zagadnieniem.
+
 ## Status
 
-**REAL GAP → RED → MINIMAL FIX → OCZEKUJE NA GREEN**
+**REAL GAP → RED → MINIMAL FIX → GREEN → REGRESSION GREEN**
 
-Nie zamykać SES-064 przed uzyskaniem pełnego regression evidence.
+SES-064 może zostać zamknięta.
+
