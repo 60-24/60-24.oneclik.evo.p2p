@@ -1,12 +1,26 @@
-"""Minimal reusable P2P node plus the SES CLI compatibility entrypoint."""
+"""Minimal reusable authenticated P2P node plus the SES CLI entrypoint."""
 
 from __future__ import annotations
 
 import argparse
+import secrets
 import socket
 import sys
 
-from .protocol import hello, parse_hello, parse_welcome, welcome
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+
+from .protocol import (
+    auth,
+    auth_payload,
+    hello,
+    node_id_from_public_key,
+    parse_auth,
+    parse_hello,
+    parse_welcome,
+    verify_signature,
+    welcome,
+)
 
 BUFFER_SIZE = 4096
 RESPONSE = "pong-from-B"
@@ -35,12 +49,17 @@ def _receive_line(conn: socket.socket) -> str:
 
 
 class P2PNode:
-    """Small dependency-free node boundary for the concrete P2P system."""
+    """Small dependency-free node boundary with authenticated peer identity."""
 
     def __init__(self, node_id: str, host: str = "127.0.0.1", port: int = 0) -> None:
         if not node_id:
             raise ValueError("node_id must not be empty")
-        self.node_id = node_id
+        self.label = node_id
+        self._identity_key = Ed25519PrivateKey.generate()
+        self.public_key = self._identity_key.public_key().public_bytes(
+            Encoding.Raw, PublicFormat.Raw
+        )
+        self.node_id = node_id_from_public_key(self.public_key)
         self.last_peer_id: str | None = None
         self.last_message: str | None = None
         self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -53,12 +72,28 @@ class P2PNode:
         conn, _peer = self._server.accept()
         conn.settimeout(LISTEN_TIMEOUT_SECONDS)
         with conn:
-            peer_id = parse_hello(_receive_line(conn))
+            peer_id, peer_public_key, client_challenge = parse_hello(
+                _receive_line(conn)
+            )
+            server_challenge = secrets.token_bytes(32)
+            signature = self._identity_key.sign(
+                auth_payload(peer_id, self.node_id, client_challenge)
+            )
+            conn.sendall(
+                f"{welcome(self.node_id, self.public_key, server_challenge, signature)}\n".encode(
+                    "utf-8"
+                )
+            )
+            peer_signature = parse_auth(_receive_line(conn))
+            verify_signature(
+                peer_public_key,
+                peer_signature,
+                auth_payload(peer_id, self.node_id, server_challenge),
+            )
             self.last_peer_id = peer_id
-            conn.sendall(f"{welcome(self.node_id)}\n".encode("utf-8"))
             self.last_message = _receive_line(conn)
             print(
-                f"node {self.node_id} received from {self.last_peer_id}: "
+                f"node {self.label} received from {self.last_peer_id}: "
                 f"{self.last_message}",
                 flush=True,
             )
@@ -69,8 +104,25 @@ class P2PNode:
         with socket.create_connection(
             (host, port), timeout=CONNECT_TIMEOUT_SECONDS
         ) as conn:
-            conn.sendall(f"{hello(self.node_id)}\n".encode("utf-8"))
-            self.last_peer_id = parse_welcome(_receive_line(conn))
+            client_challenge = secrets.token_bytes(32)
+            conn.sendall(
+                f"{hello(self.node_id, self.public_key, client_challenge)}\n".encode(
+                    "utf-8"
+                )
+            )
+            peer_id, peer_public_key, server_challenge, server_signature = parse_welcome(
+                _receive_line(conn)
+            )
+            verify_signature(
+                peer_public_key,
+                server_signature,
+                auth_payload(self.node_id, peer_id, client_challenge),
+            )
+            self.last_peer_id = peer_id
+            signature = self._identity_key.sign(
+                auth_payload(self.node_id, peer_id, server_challenge)
+            )
+            conn.sendall(f"{auth(signature)}\n".encode("utf-8"))
             conn.sendall(f"{message}\n".encode("utf-8"))
             return _receive_line(conn)
 
@@ -90,10 +142,10 @@ def _listen(address: str, node_id: str) -> int:
         return 1
     try:
         node.listen_once()
-    except ValueError as exc:
+    except (ValueError, UnicodeDecodeError) as exc:
         print(f"ERROR: Invalid peer handshake: {exc}.", file=sys.stderr)
         return 1
-    except OSError as exc:
+    except (OSError, TimeoutError) as exc:
         print(f"ERROR: Listening failed: {exc}.", file=sys.stderr)
         return 1
     finally:
@@ -111,7 +163,7 @@ def _connect(address: str, node_id: str, message: str) -> int:
     try:
         response = client.send(host, port, message)
         print(response)
-    except ValueError as exc:
+    except (ValueError, UnicodeDecodeError) as exc:
         print(f"ERROR: Invalid peer handshake: {exc}.", file=sys.stderr)
         return 1
     except socket.timeout:
@@ -129,11 +181,11 @@ def _connect(address: str, node_id: str, message: str) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Minimal P2P node")
+    parser = argparse.ArgumentParser(description="Minimal authenticated P2P node")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--listen")
     mode.add_argument("--connect")
-    parser.add_argument("--node-id", required=True)
+    parser.add_argument("--node-id", required=True, help="local display label; cryptographic NodeID is derived from the public key")
     parser.add_argument("--message")
     args = parser.parse_args()
 
