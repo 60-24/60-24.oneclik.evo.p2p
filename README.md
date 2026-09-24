@@ -130,6 +130,22 @@ ERROR: Cannot start listening: ... Check that the port is available.
 
 Check whether another process already uses the port. Prefer an available high port such as `39001` or `9000`.
 
+### Authenticated peer identity
+
+Since SES-064, the transport handshake binds the cryptographic `NodeID` to an Ed25519 public key.
+
+The wire flow is:
+
+```
+HELLO  (NodeID + public key + client challenge)
+WELCOME (NodeID + public key + server challenge + signature)
+AUTH   (signature proving possession of the client private key)
+```
+
+`NodeID = SHA-256(public key)`. A peer is recorded in `last_peer_id` only after proof-of-possession succeeds. The CLI `--node-id` value remains a local display label; it is not accepted as a cryptographic identity.
+
+This is authentication of the presented key, not a global trust or authorization system.
+
 ### Malformed peer handshake
 
 If a peer sends an invalid HELLO or WELCOME during the handshake, the CLI rejects it with an actionable error and exits with code `1`, without exposing a Python traceback.
