@@ -49,16 +49,21 @@ def hello(node_id: str, public_key: bytes, challenge: bytes, label: str) -> str:
     node_id = _validate_node_id(node_id)
     if len(public_key) != 32 or len(challenge) != 32:
         raise ValueError("invalid HELLO fields")
-    if not label or " " in label or "\\n" in label or "\\r" in label:\n        raise ValueError("invalid node label")\n    return f"{HELLO} {node_id} {_b64(public_key)} {_b64(challenge)} {label}"
+    if not label or " " in label or "\n" in label or "\r" in label:
+        raise ValueError("invalid node label")
+    return f"{HELLO} {node_id} {_b64(public_key)} {_b64(challenge)} {label}"
 
 
-def parse_hello(message: str) -> tuple[str, bytes, bytes]:
+def parse_hello(message: str) -> tuple[str, bytes, bytes, str]:
     parts = message.split(" ")
     if len(parts) != 5 or parts[0] != HELLO:
         raise ValueError("invalid handshake")
     node_id = _validate_node_id(parts[1])
     public_key = _unb64(parts[2])
     challenge = _unb64(parts[3])
+    label = parts[4]
+    if not label or " " in label or "\n" in label or "\r" in label:
+        raise ValueError("invalid node label")
     if len(public_key) != 32 or len(challenge) != 32:
         raise ValueError("invalid HELLO fields")
     if node_id_from_public_key(public_key) != node_id:
