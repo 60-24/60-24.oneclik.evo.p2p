@@ -504,45 +504,54 @@ The principle is:
 
 # 21. GAP-066 — what it means
 
-The current inspection found a candidate real problem in the TCP receive path.
+The current inspection found a real problem in the TCP receive path.
 
-The program reads incoming data until it sees the end-of-message marker.
+The program reads incoming data until it sees the end-of-message marker. The original implementation did not enforce a maximum frame/message size.
 
-The current implementation does not enforce a maximum frame/message size.
+In simple terms, a peer could keep sending data without completing the message, while the receiver continued accumulating it.
 
-In simple terms, imagine a peer that connects and keeps sending:
-
-**AAAAAAAAAAAAAAAAAAAAAAAA...**
-
-without ever sending the expected end of the message.
-
-The receiving program can continue accumulating the data.
-
-That means the receive buffer can grow without a defined upper limit.
-
-This creates a potential resource-exhaustion problem.
+That created a potential resource-exhaustion problem.
 
 ---
 
-# 22. Why GAP-066 is not fixed blindly
+# 22. SES-067 — GAP-066 was proven, then fixed
 
-At the current point, GAP-066 is:
+SES-067 followed the project rule:
 
-> **confirmed in the code as a missing protection, but not yet closed as a project GAP.**
+**INSPECT → RED → MINIMAL FIX → GREEN → REGRESSION → VERIFY**
 
-The next correct step is a **RED test**.
+First, a dedicated RED test was added:
 
-The test should demonstrate the required behavior:
+`sessions/SES-067/test_frame_size_limit.py`
 
-> a message/frame exceeding the allowed maximum must be rejected instead of being accumulated without limit.
+The first CI run demonstrated the missing protection: the oversized-frame test failed because the receiver accepted the oversized message.
 
-Only after that should the smallest effective implementation change be made.
+The runtime was then changed minimally.
 
-Then:
+A single receive-path limit was introduced:
 
-**RED → minimal fix → GREEN → regression → executable verification → documentation**
+**MAX_FRAME_SIZE = 64 KiB**
 
-This is intentional.
+When the accumulated frame exceeds this limit, reception stops with a controlled `ValueError` instead of continuing to grow the buffer.
+
+The test was corrected once to verify the receiver-side behavior rather than incorrectly requiring the sender's `send()` call itself to fail. This was a test-contract correction, not a runtime workaround.
+
+The final CI verification succeeded:
+
+- **Workflow:** `P2P Linux executable`
+- **Run:** `36071379942`
+- **Commit:** `abddca185a19965a40c2fd959a1b367665eb6626`
+- P2P regression tests: **success**
+- Linux executable build: **success**
+- packaged artifact: **success**
+- packaged two-node smoke test: **success**
+- artifact upload: **success**
+
+Therefore GAP-066 is now:
+
+> **RED confirmed → minimal fix implemented → GREEN verified → regression verified → executable verified.**
+
+This closes the technical scope of GAP-066.
 
 ---
 
