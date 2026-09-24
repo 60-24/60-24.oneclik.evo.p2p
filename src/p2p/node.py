@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import re
 import secrets
 import socket
 import sys
+from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, PublicFormat, NoEncryption
 
 from .protocol import (
     auth,
@@ -26,6 +29,7 @@ BUFFER_SIZE = 4096
 RESPONSE = "pong-from-B"
 CONNECT_TIMEOUT_SECONDS = 5
 LISTEN_TIMEOUT_SECONDS = 2
+IDENTITY_DIR_NAME = ".p2p60-24"
 
 
 def _parse_address(value: str) -> tuple[str, int]:
@@ -48,14 +52,56 @@ def _receive_line(conn: socket.socket) -> str:
     return bytes(data).split(b"\n", 1)[0].decode("utf-8")
 
 
+def _identity_path_for_label(label: str) -> Path:
+    label_hash = hashlib.sha256(label.encode("utf-8")).hexdigest()[:16]
+    return Path.home() / IDENTITY_DIR_NAME / f"{label_hash}.key"
+
+
+def _load_or_create_identity(identity_path: Path) -> Ed25519PrivateKey:
+    if identity_path.exists():
+        data = identity_path.read_bytes()
+        try:
+            return Ed25519PrivateKey.from_private_bytes(data)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(f"invalid identity key: {identity_path}") from exc
+
+    identity_path.parent.mkdir(parents=True, exist_ok=True)
+    key = Ed25519PrivateKey.generate()
+    data = key.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
+    try:
+        with identity_path.open("xb") as handle:
+            handle.write(data)
+    except FileExistsError:
+        existing = identity_path.read_bytes()
+        try:
+            return Ed25519PrivateKey.from_private_bytes(existing)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(f"invalid identity key: {identity_path}") from exc
+    try:
+        identity_path.chmod(0o600)
+    except OSError:
+        pass
+    return key
+
+
 class P2PNode:
     """Small dependency-free node boundary with authenticated peer identity."""
 
-    def __init__(self, node_id: str, host: str = "127.0.0.1", port: int = 0) -> None:
+    def __init__(
+        self,
+        node_id: str,
+        host: str = "127.0.0.1",
+        port: int = 0,
+        identity_path: str | Path | None = None,
+    ) -> None:
         if not node_id:
             raise ValueError("node_id must not be empty")
         self.label = node_id
-        self._identity_key = Ed25519PrivateKey.generate()
+        self._identity_key = (
+            _load_or_create_identity(Path(identity_path))
+            if identity_path is not None
+            else Ed25519PrivateKey.generate()
+        )
         self.public_key = self._identity_key.public_key().public_bytes(
             Encoding.Raw, PublicFormat.Raw
         )
@@ -133,7 +179,7 @@ class P2PNode:
 def _listen(address: str, node_id: str) -> int:
     try:
         host, port = _parse_address(address)
-        node = P2PNode(node_id, host, port)
+        node = P2PNode(node_id, host, port, _identity_path_for_label(node_id))
     except ValueError as exc:
         print(f"ERROR: {exc}. Use the format IP:PORT (for example 0.0.0.0:9000).", file=sys.stderr)
         return 1
@@ -159,7 +205,7 @@ def _connect(address: str, node_id: str, message: str) -> int:
     except ValueError as exc:
         print(f"ERROR: {exc}. Use the format IP:PORT (for example 192.168.1.10:9000).", file=sys.stderr)
         return 1
-    client = P2PNode(node_id)
+    client = P2PNode(node_id, identity_path=_identity_path_for_label(node_id))
     try:
         response = client.send(host, port, message)
         print(response)
@@ -185,7 +231,7 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--listen")
     mode.add_argument("--connect")
-    parser.add_argument("--node-id", required=True, help="local display label; cryptographic NodeID is derived from the public key")
+    parser.add_argument("--node-id", required=True, help="local display label; it also selects the local persistent identity store")
     parser.add_argument("--message")
     args = parser.parse_args()
 
