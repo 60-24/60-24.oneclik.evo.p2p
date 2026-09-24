@@ -29,7 +29,7 @@ def test_node_connects_via_non_loopback_ipv4():
         assert client.send(address, server.bound_port, "lan-check") == "pong-from-B"
         thread.join(timeout=5)
         assert not thread.is_alive()
-        assert server.last_peer_id == "A"
+        assert server.last_peer_id == client.node_id
         assert server.last_message == "lan-check"
         assert client.last_peer_id == "B"
     finally:
