@@ -23,7 +23,7 @@ def test_node_survives_disconnect_and_reconnect():
         thread.join(timeout=5)
         assert not thread.is_alive()
         assert first == {"value": "pong-from-B"}
-        assert server.last_peer_id == "A"
+        assert server.last_peer_id == client.node_id
 
         second = {}
         thread = threading.Thread(target=_run_listen, args=(server, second))
