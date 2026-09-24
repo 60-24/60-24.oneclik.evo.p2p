@@ -31,7 +31,7 @@ def test_node_connects_via_non_loopback_ipv4():
         assert not thread.is_alive()
         assert server.last_peer_id == client.node_id
         assert server.last_message == "lan-check"
-        assert client.last_peer_id == "B"
+        assert client.last_peer_id == server.node_id
     finally:
         server.close()
         client.close()
