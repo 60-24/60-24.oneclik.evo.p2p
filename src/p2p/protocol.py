@@ -45,16 +45,16 @@ def auth_payload(client_id: str, server_id: str, challenge: bytes) -> bytes:
     return PROTOCOL_CONTEXT + bytes.fromhex(client_id) + bytes.fromhex(server_id) + challenge
 
 
-def hello(node_id: str, public_key: bytes, challenge: bytes) -> str:
+def hello(node_id: str, public_key: bytes, challenge: bytes, label: str) -> str:
     node_id = _validate_node_id(node_id)
     if len(public_key) != 32 or len(challenge) != 32:
         raise ValueError("invalid HELLO fields")
-    return f"{HELLO} {node_id} {_b64(public_key)} {_b64(challenge)}"
+    if not label or " " in label or "\\n" in label or "\\r" in label:\n        raise ValueError("invalid node label")\n    return f"{HELLO} {node_id} {_b64(public_key)} {_b64(challenge)} {label}"
 
 
 def parse_hello(message: str) -> tuple[str, bytes, bytes]:
     parts = message.split(" ")
-    if len(parts) != 4 or parts[0] != HELLO:
+    if len(parts) != 5 or parts[0] != HELLO:
         raise ValueError("invalid handshake")
     node_id = _validate_node_id(parts[1])
     public_key = _unb64(parts[2])
@@ -63,7 +63,7 @@ def parse_hello(message: str) -> tuple[str, bytes, bytes]:
         raise ValueError("invalid HELLO fields")
     if node_id_from_public_key(public_key) != node_id:
         raise ValueError("node identity does not match public key")
-    return node_id, public_key, challenge
+    return node_id, public_key, challenge, label
 
 
 def welcome(
