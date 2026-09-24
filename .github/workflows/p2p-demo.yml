@@ -22,7 +22,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install demo tools
-        run: python -m pip install --upgrade pip pyinstaller
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          python -m pip install -r requirements.txt
 
       - name: Build demo executable
         run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
