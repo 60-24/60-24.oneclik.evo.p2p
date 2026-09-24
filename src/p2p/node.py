@@ -50,6 +50,8 @@ def _receive_line(conn: socket.socket) -> str:
         if not chunk:
             break
         data.extend(chunk)
+        if len(data) > MAX_FRAME_SIZE:
+            raise ValueError("frame exceeds maximum size")
     return bytes(data).split(b"\n", 1)[0].decode("utf-8")
 
 
