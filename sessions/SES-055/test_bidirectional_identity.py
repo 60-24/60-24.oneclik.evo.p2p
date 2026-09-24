@@ -18,7 +18,7 @@ def test_client_records_peer_identity_after_handshake():
         thread.join(timeout=5)
         assert not thread.is_alive()
         assert result["response"] == "pong-from-B"
-        assert client.last_peer_id == "B"
+        assert client.last_peer_id == server.node_id
     finally:
         server.close()
         client.close()
