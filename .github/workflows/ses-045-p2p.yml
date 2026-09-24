@@ -18,7 +18,9 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install test runner
-        run: python -m pip install pytest
+        run: |
+          python -m pip install pytest
+          python -m pip install -r requirements.txt
       - name: Run SES-045 concrete node API proof
         run: python -m pytest -q sessions/SES-045/test_p2p_node_api.py
 
@@ -30,7 +32,9 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install test runner
-        run: python -m pip install pytest
+        run: |
+          python -m pip install pytest
+          python -m pip install -r requirements.txt
       - name: Run SES-046 handshake proof
         run: python -m pytest -q sessions/SES-046/test_minikernel_handshake.py
 
@@ -42,7 +46,9 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install test runner
-        run: python -m pip install pytest
+        run: |
+          python -m pip install pytest
+          python -m pip install -r requirements.txt
       - name: Run SES-047 lifecycle and malformed protocol proof
         run: python -m pytest -q sessions/SES-047/test_lifecycle_protocol.py
 
@@ -54,6 +60,8 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install test runner
-        run: python -m pip install pytest
+        run: |
+          python -m pip install pytest
+          python -m pip install -r requirements.txt
       - name: Run SES-049 message delivery proof
         run: python -m pytest -q sessions/SES-049/test_message_delivery.py
