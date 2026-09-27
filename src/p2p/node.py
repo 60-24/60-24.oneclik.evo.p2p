@@ -48,6 +48,8 @@ def _receive_line(conn: socket.socket) -> str:
     while b"\n" not in data:
         chunk = conn.recv(BUFFER_SIZE)
         if not chunk:
+            if b"\n" not in data:
+                raise ValueError("incomplete frame")
             break
         data.extend(chunk)
         if len(data) > MAX_FRAME_SIZE:
