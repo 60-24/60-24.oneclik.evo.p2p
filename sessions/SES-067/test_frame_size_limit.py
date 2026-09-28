@@ -1,15 +1,19 @@
 import pytest
 
+import src.p2p.node as node_module
 from src.p2p import P2PNode
 
 
-MAX_FRAME_SIZE = 64 * 1024
+DEFAULT_MAX_FRAME_SIZE = 64 * 1024
 
 
-def test_listener_rejects_message_larger_than_max_frame_size():
+def test_listener_rejects_message_larger_than_max_frame_size(monkeypatch):
+    assert node_module.MAX_FRAME_SIZE == DEFAULT_MAX_FRAME_SIZE
+    monkeypatch.setattr(node_module, "MAX_FRAME_SIZE", 1024)
+
     server = P2PNode("B")
     result = {}
-    oversized_message = "X" * (MAX_FRAME_SIZE + 1)
+    oversized_message = "X" * (node_module.MAX_FRAME_SIZE + 1)
 
     def serve():
         try:
