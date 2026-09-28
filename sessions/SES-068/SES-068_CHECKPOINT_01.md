@@ -42,16 +42,17 @@ The production framing rule was kept unchanged. SES-067 was corrected to assert 
 - listener raises `ValueError("frame exceeds maximum size")`;
 - `server.last_message` remains unset.
 
-Regression-test correction commit:
-`053fdcdf1abeb91f1cf448b08d85894df024e5eb`
+Regression-test correction commits:
+- `053fdcdf1abeb91f1cf448b08d85894df024e5eb` — server-side contract
+- `abddf44dd5b08a50366c75a6b990f76e045fa648` — deterministic boundary test using a reduced test limit while asserting the production default remains 64 KiB
 
 ## GREEN evidence
 
 Authoritative GitHub Actions workflow:
 
 - Workflow: **P2P Linux executable**
-- Run: `36385776327`
-- Commit: `bd3bdf42dbe712026e1dff5db29ba535df1d5271`
+- Latest verified run: `36386373224`
+- Verified commit: `abddf44dd5b08a50366c75a6b990f76e045fa648`
 - Result: **completed / success**
 - Regression test step: **success**
 - Linux executable build: **success**
@@ -71,7 +72,7 @@ A separate workflow now records machine-readable verification:
 - current status for the verified commit: **success / P2P verification GREEN**
 - evidence artifact: `P2P60-24-EVIDENCE-36385776327`
 
-The evidence workflow is triggered automatically after **P2P Linux executable** completes.
+The evidence workflow is triggered automatically after **P2P Linux executable** completes. The latest verified commit has `p2p/evidence = success`.
 
 ## Verification boundary
 
