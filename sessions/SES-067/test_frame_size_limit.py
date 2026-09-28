@@ -22,11 +22,13 @@ def test_listener_rejects_message_larger_than_max_frame_size():
 
     client = P2PNode("A")
     try:
-        client.send("127.0.0.1", server.bound_port, oversized_message)
+        with pytest.raises(ValueError, match="incomplete frame"):
+            client.send("127.0.0.1", server.bound_port, oversized_message)
 
         thread.join(timeout=3)
 
-        assert "error" in result
+        assert isinstance(result.get("error"), ValueError)
+        assert str(result["error"]) == "frame exceeds maximum size"
         assert server.last_message is None
     finally:
         client.close()
