@@ -49,7 +49,7 @@ def _receive_line(conn: socket.socket, buffer: bytearray) -> str:
         if not chunk:
             raise ValueError("incomplete frame")
         buffer.extend(chunk)
-        if b"\n" not in buffer and len(buffer) >= MAX_FRAME_SIZE:
+        if b"\n" not in buffer and len(buffer) > MAX_FRAME_SIZE:
             raise ValueError("frame exceeds maximum size")
 
     line, _, remainder = bytes(buffer).partition(b"\n")
