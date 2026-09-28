@@ -43,18 +43,21 @@ def _parse_address(value: str) -> tuple[str, int]:
     return host, port
 
 
-def _receive_line(conn: socket.socket) -> str:
-    data = bytearray()
-    while b"\n" not in data:
+def _receive_line(conn: socket.socket, buffer: bytearray) -> str:
+    while b"\n" not in buffer:
         chunk = conn.recv(BUFFER_SIZE)
         if not chunk:
-            if b"\n" not in data:
-                raise ValueError("incomplete frame")
-            break
-        data.extend(chunk)
-        if len(data) > MAX_FRAME_SIZE:
+            raise ValueError("incomplete frame")
+        buffer.extend(chunk)
+        if b"\n" not in buffer and len(buffer) > MAX_FRAME_SIZE:
             raise ValueError("frame exceeds maximum size")
-    return bytes(data).split(b"\n", 1)[0].decode("utf-8")
+
+    line, _, remainder = bytes(buffer).partition(b"\n")
+    if len(line) >= MAX_FRAME_SIZE:
+        raise ValueError("frame exceeds maximum size")
+    buffer.clear()
+    buffer.extend(remainder)
+    return line.decode("utf-8")
 
 
 def _identity_path_for_label(label: str) -> Path:
@@ -123,8 +126,9 @@ class P2PNode:
         conn, _peer = self._server.accept()
         conn.settimeout(LISTEN_TIMEOUT_SECONDS)
         with conn:
+            buffer = bytearray()
             peer_id, peer_public_key, client_challenge, peer_label = parse_hello(
-                _receive_line(conn)
+                _receive_line(conn, buffer)
             )
             server_challenge = secrets.token_bytes(32)
             signature = self._identity_key.sign(
@@ -135,14 +139,14 @@ class P2PNode:
                     "utf-8"
                 )
             )
-            peer_signature = parse_auth(_receive_line(conn))
+            peer_signature = parse_auth(_receive_line(conn, buffer))
             verify_signature(
                 peer_public_key,
                 peer_signature,
                 auth_payload(peer_id, self.node_id, server_challenge),
             )
             self.last_peer_id = peer_id
-            self.last_message = _receive_line(conn)
+            self.last_message = _receive_line(conn, buffer)
             print(
                 f"node {self.label} received from {peer_label}: "
                 f"{self.last_message}",
@@ -155,6 +159,7 @@ class P2PNode:
         with socket.create_connection(
             (host, port), timeout=CONNECT_TIMEOUT_SECONDS
         ) as conn:
+            buffer = bytearray()
             client_challenge = secrets.token_bytes(32)
             conn.sendall(
                 f"{hello(self.node_id, self.public_key, client_challenge, self.label)}\n".encode(
@@ -162,7 +167,7 @@ class P2PNode:
                 )
             )
             peer_id, peer_public_key, server_challenge, server_signature = parse_welcome(
-                _receive_line(conn)
+                _receive_line(conn, buffer)
             )
             verify_signature(
                 peer_public_key,
@@ -175,7 +180,7 @@ class P2PNode:
             )
             conn.sendall(f"{auth(signature)}\n".encode("utf-8"))
             conn.sendall(f"{message}\n".encode("utf-8"))
-            return _receive_line(conn)
+            return _receive_line(conn, buffer)
 
     def close(self) -> None:
         self._server.close()
