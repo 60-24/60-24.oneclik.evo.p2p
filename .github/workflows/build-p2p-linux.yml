@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  id-token: write
+  attestations: write
 
 jobs:
   build-linux-p2p:
@@ -65,6 +67,12 @@ jobs:
           wait "$lan_server_pid"
           grep -q "node B received from A" lan-server.log
           grep -q "lan-check" lan-server.log
+      - name: Attest Linux artifact
+        if: success()
+        uses: actions/attest@v4
+        with:
+          subject-path: P2P60-24Node-linux-x86_64.tar.gz
+
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
