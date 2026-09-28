@@ -1,0 +1,76 @@
+name: P2P Evidence Check
+
+on:
+  workflow_run:
+    workflows: ["P2P Linux executable"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  statuses: write
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate machine-readable evidence
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+          RUN_STATUS: ${{ github.event.workflow_run.status }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+          EVENT: ${{ github.event.workflow_run.event }}
+        run: |
+          python - <<'PY'
+          import json, os
+          conclusion = os.environ["RUN_CONCLUSION"]
+          evidence = {
+              "schema": "P2P60-24-EVIDENCE/v1",
+              "evidence": "GREEN" if conclusion == "success" else "RED",
+              "source_workflow": os.environ["WORKFLOW_NAME"],
+              "run_id": int(os.environ["RUN_ID"]),
+              "run_number": int(os.environ["RUN_NUMBER"]),
+              "status": os.environ["RUN_STATUS"],
+              "conclusion": conclusion,
+              "commit": os.environ["HEAD_SHA"],
+              "branch": os.environ["HEAD_BRANCH"],
+              "event": os.environ["EVENT"],
+              "workflow_url": os.environ["WORKFLOW_URL"],
+          }
+          with open("P2P60-24-EVIDENCE.json", "w", encoding="utf-8") as f:
+              json.dump(evidence, f, indent=2, sort_keys=True)
+              f.write("\n")
+          PY
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: P2P60-24-EVIDENCE-${{ github.event.workflow_run.id }}
+          path: P2P60-24-EVIDENCE.json
+          if-no-files-found: error
+
+      - name: Publish commit evidence status
+        uses: actions/github-script@v8
+        env:
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        with:
+          script: |
+            const state = process.env.CONCLUSION === 'success' ? 'success' : 'failure';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.HEAD_SHA,
+              state,
+              context: 'p2p/evidence',
+              description: state === 'success'
+                ? 'P2P verification GREEN'
+                : 'P2P verification FAILED',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.RUN_ID}`
+            });
