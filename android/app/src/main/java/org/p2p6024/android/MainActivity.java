@@ -8,15 +8,13 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends android.app.Activity {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private TextView status;
     private EditText host;
