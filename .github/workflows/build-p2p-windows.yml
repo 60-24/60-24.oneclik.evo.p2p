@@ -1,0 +1,78 @@
+name: P2P Windows executable
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build-windows-p2p:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build and test tools
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip pyinstaller pytest
+          python -m pip install -r requirements.txt
+      - name: Run P2P regression tests
+        shell: pwsh
+        run: |
+          python -m pytest -q sessions/SES-046/test_minikernel_handshake.py
+          python -m pytest -q sessions/SES-047/test_lifecycle_protocol.py
+          python -m pytest -q sessions/SES-049/test_message_delivery.py
+          python -m pytest -q sessions/SES-055/test_bidirectional_identity.py
+          python -m pytest -q sessions/SES-058/test_non_loopback_ipv4.py
+          python -m pytest -q sessions/SES-059/test_cli_errors.py
+          python -m pytest -q sessions/SES-061/test_incomplete_handshake_timeout.py
+          python -m pytest -q sessions/SES-064/test_identity_transport_binding.py
+          python -m pytest -q sessions/SES-065/test_persistent_identity.py
+          python -m pytest -q sessions/SES-067/test_frame_size_limit.py
+          python -m pytest -q sessions/SES-068/test_incomplete_frame_eof.py
+          python -m pytest -q sessions/SES-069/test_coalesced_frames.py
+      - name: Build Windows executable
+        shell: pwsh
+        run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
+      - name: Smoke test packaged two-node executable
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $testDir = Join-Path $env:RUNNER_TEMP "p2p60-24-windows-smoke"
+          New-Item -ItemType Directory -Force -Path $testDir | Out-Null
+          Copy-Item dist\P2P60-24Node.exe $testDir\P2P60-24Node.exe
+          Set-Location $testDir
+          $server = Start-Process -FilePath .\P2P60-24Node.exe -ArgumentList "--listen 127.0.0.1:39001 --node-id B" -RedirectStandardOutput server.log -RedirectStandardError server.err -PassThru
+          try {
+            Start-Sleep -Seconds 1
+            $response = & .\P2P60-24Node.exe --connect 127.0.0.1:39001 --node-id A --message hello-from-A
+            if ($response -ne "pong-from-B") { throw "unexpected response: $response" }
+            $server.WaitForExit()
+            if ($server.ExitCode -ne 0) { throw "Node B exited with code $($server.ExitCode)" }
+            $serverLog = Get-Content .\server.log -Raw
+            if ($serverLog -notmatch "node B received from A") { throw "Node B did not record peer label" }
+            if ($serverLog -notmatch "hello-from-A") { throw "Node B did not record application message" }
+          } finally {
+            if (!$server.HasExited) { Stop-Process -Id $server.Id -Force }
+          }
+      - name: Package Windows artifact
+        shell: pwsh
+        run: Compress-Archive -Path dist\P2P60-24Node.exe -DestinationPath P2P60-24Node-windows-x86_64.zip
+      - name: Attest Windows artifact
+        if: success()
+        uses: actions/attest@v4
+        with:
+          subject-path: P2P60-24Node-windows-x86_64.zip
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: P2P60-24Node-windows-x86_64
+          path: P2P60-24Node-windows-x86_64.zip
