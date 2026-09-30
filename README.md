@@ -84,6 +84,30 @@ On the computer running Node A, use the real LAN address of Node B:
 
 The LAN address path is supported by the runtime. SES-058 also verified a non-loopback IPv4 executable path in CI.
 
+## Windows native executable
+
+The repository also publishes a self-contained Windows x86_64 executable as the GitHub Actions artifact `P2P60-24Node-windows-x86_64`.
+
+### Download and run on Windows
+
+1. Open the [P2P Windows executable workflow](https://github.com/60-24/60-24.oneclik.evo.p2p/actions/workflows/build-p2p-windows.yml).
+2. Open a successful run on `main`.
+3. In **Artifacts**, download `P2P60-24Node-windows-x86_64`.
+4. Extract the ZIP archive.
+5. In PowerShell, start Node B:
+
+```powershell
+.\P2P60-24Node.exe --listen 0.0.0.0:39001 --node-id B
+```
+
+6. On the Android node or another LAN computer, connect to the Windows machine's LAN address:
+
+```text
+192.168.1.20:39001
+```
+
+The Windows workflow verifies the packaged executable locally with the same authenticated handshake and message-delivery smoke test used by the Linux proof. A successful CI run proves the Windows artifact builds and executes on Windows; it does not by itself prove Android-to-Windows LAN connectivity.
+
 ## CLI help
 
 Use the built-in help without inspecting the source code:
