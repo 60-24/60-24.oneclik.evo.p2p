@@ -63,9 +63,16 @@ jobs:
           } finally {
             if (!$server.HasExited) { Stop-Process -Id $server.Id -Force }
           }
-      - name: Package Windows artifact
+      - name: Package Windows test kit
         shell: pwsh
-        run: Compress-Archive -Path dist\P2P60-24Node.exe -DestinationPath P2P60-24Node-windows-x86_64.zip
+        run: |
+          $package = "P2P60-24Node-windows-x86_64"
+          New-Item -ItemType Directory -Force -Path $package | Out-Null
+          Copy-Item dist\P2P60-24Node.exe $package\P2P60-24Node.exe
+          Copy-Item windows\start-node-a.cmd $package\start-node-a.cmd
+          Copy-Item windows\start-node-b.cmd $package\start-node-b.cmd
+          Copy-Item windows\README.txt $package\README.txt
+          Compress-Archive -Path $package -DestinationPath P2P60-24Node-windows-x86_64.zip
       - name: Attest Windows artifact
         if: success()
         uses: actions/attest@v4
