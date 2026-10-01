@@ -93,20 +93,33 @@ The repository also publishes a self-contained Windows x86_64 executable as the 
 1. Open the [P2P Windows executable workflow](https://github.com/60-24/60-24.oneclik.evo.p2p/actions/workflows/build-p2p-windows.yml).
 2. Open a successful run on `main`.
 3. In **Artifacts**, download `P2P60-24Node-windows-x86_64`.
-4. Extract the ZIP archive.
-5. In PowerShell, start Node B:
+4. Extract the ZIP archive. The archive contains:
+   - `P2P60-24Node.exe`
+   - `start-node-b.cmd`
+   - `start-node-a.cmd`
+   - `README.txt`
+5. **Do not double-click `P2P60-24Node.exe` as a GUI application.** It is a console executable and requires command-line arguments.
+6. For Node B, double-click `start-node-b.cmd`. Keep the window open.
+7. For a second Windows computer as Node A, copy the same extracted package there and double-click `start-node-a.cmd`; enter Node B's LAN IPv4 address when prompted.
+8. If Windows Firewall asks for network access, allow the executable on the local/private network used for the test.
 
-```powershell
-.\P2P60-24Node.exe --listen 0.0.0.0:39001 --node-id B
-```
-
-6. On the Android node or another LAN computer, connect to the Windows machine's LAN address:
+Expected Node A:
 
 ```text
-192.168.1.20:39001
+pong-from-B
 ```
 
-The Windows workflow verifies the packaged executable locally with the same authenticated handshake and message-delivery smoke test used by the Linux proof. A successful CI run proves the Windows artifact builds and executes on Windows; it does not by itself prove Android-to-Windows LAN connectivity.
+Expected Node B:
+
+```text
+node B received from A: hello-from-A
+```
+
+For Android → Windows, run Node B with `start-node-b.cmd`, determine the Windows LAN IPv4 address with `ipconfig`, then enter that address and port `39001` in the Android app.
+
+The Windows workflow also runs a packaged two-node localhost smoke test. A successful CI run proves the Windows artifact builds and executes on Windows; it does not by itself prove Android-to-Windows LAN connectivity.
+
+If the executable is blocked, crashes, or closes immediately, **do not change P2P protocol code**. Record the exact Windows message first. The expected first check is that the test is being run from the extracted package and through the supplied launcher, not by treating the console executable as a GUI application.
 
 ## CLI help
 
