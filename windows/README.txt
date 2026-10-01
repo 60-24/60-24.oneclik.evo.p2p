@@ -5,11 +5,14 @@ P2P 60-24 OneClick Evo Positiv - native Windows test
 
 2. On Windows Node B:
    - double-click start-node-b.cmd
+   - the launcher checks that TCP 39001 is free, starts the native node, verifies that TCP 39001 is LISTENING, and prints the available non-loopback IPv4 addresses
+   - note the displayed LAN IPv4 address
    - allow Windows Firewall access if Windows asks
-   - keep the window open
+   - keep the launcher/node window open
 
-3. Find Node B's LAN IPv4 address:
-   ipconfig
+3. The launcher also prints the Windows Firewall profile state. This is diagnostic evidence only; it does not change firewall rules.
+
+4. If the launcher reports `LISTENER READY`, the Windows application layer has reached the TCP LISTEN state. This does not yet prove that Android can reach the host; the Android → Windows test is the next evidence step.
 
 4. On Windows Node A:
    - copy this package to the second Windows computer
