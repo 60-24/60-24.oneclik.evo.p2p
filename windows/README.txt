@@ -14,7 +14,7 @@ P2P 60-24 OneClick Evo Positiv - native Windows test
 
 4. If the launcher reports `LISTENER READY`, the Windows application layer has reached the TCP LISTEN state. This does not yet prove that Android can reach the host; the Android → Windows test is the next evidence step.
 
-4. On Windows Node A:
+5. On Windows Node A:
    - copy this package to the second Windows computer
    - double-click start-node-a.cmd
    - enter Node B's LAN IPv4 address
