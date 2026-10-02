@@ -103,12 +103,14 @@ Keep the Node B window open.
 
 ### Android
 
-Install the current `P2P60-24Node-android-arm64-debug` APK and enter:
+Install the current `P2P60-24Node-android-arm64-debug` APK. The Android app starts with the local bridge target already filled in; use:
 
 - Host: `127.0.0.1`
 - Port: `39001`
 - Node label: `A`
 - Message: `hello-from-Android`
+
+For a physical LAN test, replace the Host with the Windows/Linux Node B LAN IPv4 address.
 
 Press **Connect**.
 
