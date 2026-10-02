@@ -84,6 +84,45 @@ On the computer running Node A, use the real LAN address of Node B:
 
 The LAN address path is supported by the runtime. SES-058 also verified a non-loopback IPv4 executable path in CI.
 
+## Live demo — Android ↔ native Windows
+
+The shortest current cross-platform demo path is USB + ADB reverse. It avoids Wi-Fi routing and Windows LAN firewall configuration.
+
+### Windows
+
+1. Download and extract the current `P2P60-24Node-windows-x86_64` Actions artifact.
+2. Connect the Android phone by USB and enable USB debugging.
+3. Make sure `adb` is available in PATH.
+4. In the extracted Windows folder run:
+
+```text
+start-android-adb-bridge.cmd
+```
+
+Keep the Node B window open.
+
+### Android
+
+Install the current `P2P60-24Node-android-arm64-debug` APK and enter:
+
+- Host: `127.0.0.1`
+- Port: `39001`
+- Node label: `A`
+- Message: `hello-from-Android`
+
+Press **Connect**.
+
+Expected:
+
+```text
+Android: OK response=pong-from-B
+Windows: node B received from A: hello-from-Android
+```
+
+This is the current simplest live integration demonstration of the existing authenticated Node A ↔ Node B runtime.
+
+**Evidence boundary:** this path proves Android ↔ native Windows integration through the USB/ADB bridge. It is not a substitute for independent physical LAN evidence.
+
 ## Windows native executable
 
 The repository also publishes a self-contained Windows x86_64 executable as the GitHub Actions artifact `P2P60-24Node-windows-x86_64`.
