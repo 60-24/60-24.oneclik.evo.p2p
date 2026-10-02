@@ -71,6 +71,7 @@ jobs:
           Copy-Item dist\P2P60-24Node.exe $package\P2P60-24Node.exe
           Copy-Item windows\start-node-a.cmd $package\start-node-a.cmd
           Copy-Item windows\start-node-b.cmd $package\start-node-b.cmd
+          Copy-Item windows\start-android-adb-bridge.cmd $package\start-android-adb-bridge.cmd
           Copy-Item windows\README.txt $package\README.txt
           Compress-Archive -Path $package -DestinationPath P2P60-24Node-windows-x86_64.zip
       - name: Attest Windows artifact
