@@ -37,7 +37,7 @@ public class MainActivity extends android.app.Activity {
         root.addView(title);
 
         label = field("Node label", "A");
-        host = field("Host", "192.168.1.20");
+        host = field("Host", "127.0.0.1");
         port = field("Port", "39001");
         message = field("Message", "hello-from-Android");
 
