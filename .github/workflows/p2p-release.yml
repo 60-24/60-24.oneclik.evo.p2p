@@ -1,0 +1,71 @@
+name: P2P Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    name: Publish P2P release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+
+      - name: Resolve latest successful build runs
+        id: runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          linux_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-linux.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          windows_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-windows.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          android_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-android.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+
+          test -n "${linux_run}"
+          test -n "${windows_run}"
+          test -n "${android_run}"
+
+          echo "linux_run=${linux_run}" >> "${GITHUB_OUTPUT}"
+          echo "windows_run=${windows_run}" >> "${GITHUB_OUTPUT}"
+          echo "android_run=${android_run}" >> "${GITHUB_OUTPUT}"
+
+      - name: Download Linux artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "${{ steps.runs.outputs.linux_run }}" --repo "${GITHUB_REPOSITORY}" --name P2P60-24Node-linux-x86_64 --dir release/linux
+
+      - name: Download Windows artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "${{ steps.runs.outputs.windows_run }}" --repo "${GITHUB_REPOSITORY}" --name P2P60-24Node-windows-x86_64 --dir release/windows
+
+      - name: Download Android artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "${{ steps.runs.outputs.android_run }}" --repo "${GITHUB_REPOSITORY}" --name P2P60-24Node-android-arm64-debug --dir release/android
+
+      - name: Package release assets
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          (cd release/linux && zip -qr ../../dist/P2P60-24Node-linux-x86_64.zip .)
+          (cd release/windows && zip -qr ../../dist/P2P60-24Node-windows-x86_64.zip .)
+          (cd release/android && zip -qr ../../dist/P2P60-24Node-android-arm64-debug.zip .)
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "P2P 60-24 ${GITHUB_REF_NAME}" \
+            --generate-notes
