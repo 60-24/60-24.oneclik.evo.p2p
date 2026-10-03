@@ -25,9 +25,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          linux_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-linux.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
-          windows_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-windows.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
-          android_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-android.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          linux_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-linux.yml --commit "${GITHUB_SHA}" --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          windows_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-windows.yml --commit "${GITHUB_SHA}" --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          android_run="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow build-p2p-android.yml --commit "${GITHUB_SHA}" --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
 
           test -n "${linux_run}"
           test -n "${windows_run}"
