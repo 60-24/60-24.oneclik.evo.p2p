@@ -101,6 +101,7 @@ class P2PNode:
         host: str = "127.0.0.1",
         port: int = 0,
         identity_path: str | Path | None = None,
+        transport: Transport | None = None,
     ) -> None:
         if not node_id:
             raise ValueError("node_id must not be empty")
@@ -116,10 +117,8 @@ class P2PNode:
         self.node_id = node_id_from_public_key(self.public_key)
         self.last_peer_id: str | None = None
         self.last_message: str | None = None
-        self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._server.bind((host, port))
-        self._server.listen(1)
+        self.transport = transport or TCPTransport()
+        self._server = self.transport.listen(host, port)
         self.bound_host, self.bound_port = self._server.getsockname()
 
     def listen_once(self) -> str:
@@ -156,8 +155,8 @@ class P2PNode:
         return RESPONSE
 
     def send(self, host: str, port: int, message: str) -> str:
-        with socket.create_connection(
-            (host, port), timeout=CONNECT_TIMEOUT_SECONDS
+        with self.transport.connect(
+            host, port, CONNECT_TIMEOUT_SECONDS
         ) as conn:
             buffer = bytearray()
             client_challenge = secrets.token_bytes(32)
