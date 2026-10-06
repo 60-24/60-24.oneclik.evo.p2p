@@ -13,7 +13,9 @@ from pathlib import Path
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, PublicFormat, NoEncryption
 
-from .transport import TCPTransport, Transport\n\nfrom .protocol import (
+from .transport import TCPTransport, Transport
+
+from .protocol import (
     auth,
     auth_payload,
     hello,
