@@ -1,8 +1,7 @@
 # Current State — P2P 60-24 OneClick Evo Positiv
 
 **As of:** 2026-10-07  
-**Branch:** `main`  
-**HEAD:** `d85e008a623a1b532152b5ec69bae36cb357a35f`  
+**Branch:** `main`    
 **Latest closed session:** SES-081 — STONE
 
 ## 1. Identity of the project
