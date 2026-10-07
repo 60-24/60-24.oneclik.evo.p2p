@@ -14,7 +14,6 @@ The repository is **not** a production P2P network and is **not** the complete S
 
 - Branch: `main`
 - Latest checkpoint: **SES-081 = STONE**
-- Current HEAD: `d85e008a623a1b532152b5ec69bae36cb357a35f`
 - Current focus: preserve a small, modular Mini Node and find the next real GAP by inspection.
 - Rule: **INSPECT → UNDERSTAND → REAL GAP → RED → MINIMAL CHANGE → GREEN → EVIDENCE → STONE**
 
