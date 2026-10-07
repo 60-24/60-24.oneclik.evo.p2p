@@ -3,7 +3,6 @@
 **Minimal, standalone P2P runtime for direct Node A ↔ Node B communication.**
 
 > **Current checkpoint: SES-081 = STONE.**  
-> Current HEAD: `39154e20b168d72bb328e3c7cab805c4ee7f2595`
 
 ## Start here
 
