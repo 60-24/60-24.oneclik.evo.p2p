@@ -1,271 +1,120 @@
-# 60-24.oneclik.evo.p2p
+# P2P 60-24 OneClick Evo Positiv
 
-Minimal, standalone P2P runtime for direct Node A ↔ Node B communication.
+**Minimal, standalone P2P runtime for direct Node A ↔ Node B communication.**
 
+> **Current checkpoint: SES-081 = STONE.**  
+> Current HEAD: `39154e20b168d72bb328e3c7cab805c4ee7f2595`
 
-## Understand the project
+## Start here
 
-The README is the operational guide: it explains how to download, run, and verify the current Node A ↔ Node B runtime.
+If you are new to the repository, read in this order:
 
-For the broader story — why the project exists, how the idea evolved, the major sessions and milestones, what was actually built, how problems were found and fixed, why tests and evidence matter, and what the current GAP-066 means — see:
+1. **[START HERE](START_HERE.md)** — shortest orientation.
+2. **[Current State](docs/CURRENT_STATE.md)** — factual implementation boundary.
+3. **[Repository Map](docs/REPOSITORY_MAP.md)** — where things live.
+4. **[Project Overview](docs/PROJECT_OVERVIEW_FOR_HUMANS.md)** — history and rationale.
+5. **[AGENTS.md](AGENTS.md)** — how changes are made safely.
 
-**[Project Overview for Humans](docs/PROJECT_OVERVIEW_FOR_HUMANS.md)**
+## What the current program does
 
-This document is part of the project's supporting documentation and is intended to make the technical README understandable without requiring programming knowledge.
+Two independent nodes can:
 
-## Download and run
+`Node A → TCP → HELLO/WELCOME/AUTH → authenticated peer → message → response`
 
-The repository publishes a self-contained Linux x86_64 executable named `P2P60-24Node` as the GitHub Actions artifact `P2P60-24Node-linux-x86_64`.
+The current runtime includes:
 
-### 0. Download and extract the artifact
+- Ed25519 cryptographic identity and proof-of-possession;
+- persistent local CLI identity;
+- NodeID derived from the public key;
+- frame-size protection;
+- malformed/truncated/coalesced-frame handling;
+- a transport boundary with TCP as the current adapter;
+- Linux and Windows executable builds;
+- Android APK build;
+- Android ↔ native Windows ADB integration path;
+- automated CI verification and build artifacts.
 
-1. Open the [P2P Linux executable workflow](https://github.com/60-24/60-24.oneclik.evo.p2p/actions/workflows/build-p2p-linux.yml).
-2. Open a successful run on `main`.
-3. In the run's **Artifacts** section, download `P2P60-24Node-linux-x86_64`.
-4. Extract the downloaded GitHub artifact archive, then extract the included tarball:
+## Quick local test
 
-```bash
-unzip P2P60-24Node-linux-x86_64.zip
-mkdir P2P60-24Node-linux-x86_64
- tar -xzf P2P60-24Node-linux-x86_64/P2P60-24Node-linux-x86_64.tar.gz -C P2P60-24Node-linux-x86_64
-cd P2P60-24Node-linux-x86_64
-chmod +x P2P60-24Node
-```
-
-The executable is self-contained: after extraction it can be run from this directory without a checkout, Python installation, or repository files. It targets Linux x86_64. GitHub Actions artifacts are retained according to the repository's Actions retention policy; for a permanent public download, a release asset would be a separate distribution decision and is not required for this CI proof.
-
-### 1. Start Node B
-
-In the first terminal:
+### Node B
 
 ```bash
 ./P2P60-24Node --listen 127.0.0.1:39001 --node-id B
 ```
 
-The program stays in listening mode, ready for one connection.
-
-### 2. Connect Node A
-
-In a second terminal:
+### Node A
 
 ```bash
 ./P2P60-24Node --connect 127.0.0.1:39001 --node-id A --message "hello-from-A"
 ```
 
-Expected output from Node A:
+Expected:
 
-```text
-pong-from-B
-```
+- Node A: `pong-from-B`
+- Node B: `node B received from A: hello-from-A`
 
-Expected output from Node B:
+For Linux/Windows/Android packaged paths, use the relevant GitHub Actions artifact and the instructions in [windows/README.txt](windows/README.txt).
 
-```text
-node B received from A: hello-from-A
-```
+## LAN test
 
-The two commands use the same freshly downloaded executable. The executable performs TCP connection, HELLO/WELCOME handshake, peer identification, application message delivery, and the response.
-
-### 3. Use on a local network (LAN)
-
-The CLI accepts IPv4 `IP:PORT` addresses.
-
-On the computer running Node B:
+Node B:
 
 ```bash
 ./P2P60-24Node --listen 0.0.0.0:39001 --node-id B
 ```
 
-On the computer running Node A, use the real LAN address of Node B:
+Node A:
 
 ```bash
-./P2P60-24Node --connect 192.168.1.20:39001 --node-id A --message "hello-from-LAN"
+./P2P60-24Node --connect <NODE_B_LAN_IP>:39001 --node-id A --message "hello-from-LAN"
 ```
 
-The LAN address path is supported by the runtime. SES-058 also verified a non-loopback IPv4 executable path in CI.
+Use the real LAN IPv4 address of Node B.
 
-## Live demo — Android ↔ native Windows
+## Evidence boundary
 
-The shortest current cross-platform demo path is USB + ADB reverse. It avoids Wi-Fi routing and Windows LAN firewall configuration.
+The repository is a proof-oriented engineering project.
 
-### Windows
+Do not overclaim:
 
-1. Download and extract the current `P2P60-24Node-windows-x86_64` Actions artifact.
-2. Connect the Android phone by USB and enable USB debugging.
-3. Make sure `adb` is available in PATH.
-4. In the extracted Windows folder run:
+- CI success proves the checked CI path, not every physical network.
+- ADB bridge proves Android ↔ native Windows integration, not physical LAN.
+- An artifact is not automatically a permanent public release.
+- Cryptographic authentication is not a global Trust system.
+- The current runtime is not Internet-wide P2P.
+- Future architecture documents are not current implementation.
 
-```text
-start-android-adb-bridge.cmd
-```
+## Current limitations
 
-Keep the Node B window open.
+The runtime does not yet provide:
 
-### Android
-
-Install the current `P2P60-24Node-android-arm64-debug` APK. The Android app starts with the local bridge target already filled in; use:
-
-- Host: `127.0.0.1`
-- Port: `39001`
-- Node label: `A`
-- Message: `hello-from-Android`
-
-For a physical LAN test, replace the Host with the Windows/Linux Node B LAN IPv4 address.
-
-Press **Connect**.
-
-Expected:
-
-```text
-Android: OK response=pong-from-B
-Windows: node B received from A: hello-from-Android
-```
-
-This is the current simplest live integration demonstration of the existing authenticated Node A ↔ Node B runtime.
-
-**Evidence boundary:** this path proves Android ↔ native Windows integration through the USB/ADB bridge. It is not a substitute for independent physical LAN evidence.
-
-## Windows native executable
-
-The repository also publishes a self-contained Windows x86_64 executable as the GitHub Actions artifact `P2P60-24Node-windows-x86_64`.
-
-### Download and run on Windows
-
-1. Open the [P2P Windows executable workflow](https://github.com/60-24/60-24.oneclik.evo.p2p/actions/workflows/build-p2p-windows.yml).
-2. Open a successful run on `main`.
-3. In **Artifacts**, download `P2P60-24Node-windows-x86_64`.
-4. Extract the ZIP archive. The archive contains:
-   - `P2P60-24Node.exe`
-   - `start-node-b.cmd`
-   - `start-node-a.cmd`
-   - `README.txt`
-5. **Do not double-click `P2P60-24Node.exe` as a GUI application.** It is a console executable and requires command-line arguments.
-6. For Node B, double-click `start-node-b.cmd`. Keep the window open.
-7. For a second Windows computer as Node A, copy the same extracted package there and double-click `start-node-a.cmd`; enter Node B's LAN IPv4 address when prompted.
-8. If Windows Firewall asks for network access, allow the executable on the local/private network used for the test.
-
-Expected Node A:
-
-```text
-pong-from-B
-```
-
-Expected Node B:
-
-```text
-node B received from A: hello-from-A
-```
-
-For Android → Windows, run Node B with `start-node-b.cmd`, determine the Windows LAN IPv4 address with `ipconfig`, then enter that address and port `39001` in the Android app.
-
-The Windows workflow also runs a packaged two-node localhost smoke test. A successful CI run proves the Windows artifact builds and executes on Windows; it does not by itself prove Android-to-Windows LAN connectivity.
-
-If the executable is blocked, crashes, or closes immediately, **do not change P2P protocol code**. Record the exact Windows message first. The expected first check is that the test is being run from the extracted package and through the supplied launcher, not by treating the console executable as a GUI application.
-
-## CLI help
-
-Use the built-in help without inspecting the source code:
-
-```bash
-./P2P60-24Node --help
-```
-
-Available modes and arguments:
-
-- `--listen IP:PORT` — listen for one incoming peer connection.
-- `--connect IP:PORT` — connect to Node B.
-- `--node-id ID` — identifier sent during the handshake.
-- `--message TEXT` — application message; required with `--connect`.
-
-## Troubleshooting
-
-The CLI reports expected connection, address, and handshake errors as short messages and exits with code `1`; it does not expose a Python traceback for these cases.
-
-### Invalid address
-
-Example:
-
-```text
-ERROR: invalid address: '192.168.1.10'. Use the format IP:PORT (for example 192.168.1.10:9000).
-```
-
-Use the form:
-
-```text
-192.168.1.10:9000
-```
-
-### Connection refused
-
-```text
-ERROR: Connection refused. Make sure Node B is listening at this address and port.
-```
-
-Check that Node B is running and that the IP address and port in `--connect` match the listener.
-
-### Connection timeout
-
-```text
-ERROR: Connection timed out. Check that Node B is running and the address/port are correct.
-```
-
-Check the Node B address, port, network path, and firewall.
-
-### Cannot start listening
-
-```text
-ERROR: Cannot start listening: ... Check that the port is available.
-```
-
-Check whether another process already uses the port. Prefer an available high port such as `39001` or `9000`.
-
-### Authenticated peer identity
-
-Since SES-064, the transport handshake binds the cryptographic `NodeID` to an Ed25519 public key.
-
-The wire flow is:
-
-```
-HELLO  (NodeID + public key + client challenge)
-WELCOME (NodeID + public key + server challenge + signature)
-AUTH   (signature proving possession of the client private key)
-```
-
-`NodeID = SHA-256(public key)`. A peer is recorded in `last_peer_id` only after proof-of-possession succeeds. The CLI `--node-id` value remains a local display label; it is not accepted as a cryptographic identity. The CLI persists the Ed25519 private key in the local user identity store under `~/.p2p60-24/`, using a stable label-derived file name, so the same NodeID survives process restarts. A corrupted existing identity file is rejected rather than silently replaced.
-
-This is authentication of the presented key, not a global trust or authorization system.
-
-### Malformed peer handshake
-
-If a peer sends an invalid HELLO or WELCOME during the handshake, the CLI rejects it with an actionable error and exits with code `1`, without exposing a Python traceback.
-
-## Current boundary
-
-This is a minimal runtime proof, not yet a production-ready P2P product. It does not provide:
-
-- end-to-end encryption,
-- advanced authentication,
 - automatic peer discovery,
 - NAT traversal,
+- relay infrastructure,
+- end-to-end encryption,
+- advanced authorization,
 - GUI,
 - automatic installation,
-- central relay infrastructure.
+- production-grade Internet deployment.
 
-The current phase proves the direct Node A ↔ Node B runtime, authenticated peer identity, and persistence of the local cryptographic identity across process restarts. It does not claim production security, Internet-wide connectivity, or automatic discovery.
+These are **limitations, not automatic GAPs**.
 
-## Verified executable proof
+## Engineering method
 
-SES-057 verified the packaged Linux executable with two independent processes, HELLO/WELCOME, bidirectional peer identity, application message delivery, response, and artifact publication.
+Every non-trivial change follows:
 
-SES-058 extended the executable proof with a non-loopback IPv4 path and automated verification.
+**INSPECT → UNDERSTAND → IDENTIFY REAL GAP → RED → MINIMAL IMPLEMENTATION → GREEN → EVIDENCE → STONE**
 
-SES-059 added actionable CLI error handling, regression tests, and user troubleshooting documentation.
+No artificial RED. No feature only because a technology exists.
 
-SES-060 extended the CLI error boundary to malformed peer handshakes on both listener and connector paths.
+## Scope boundary
 
-SES-063 confirmed that the current packaged executable, artifact workflow, and user instructions cover the independent-user path from download through the first P2P exchange. The exact CI proof is recorded in `sessions/SES-063/SES-063_CHECKPOINT_01.md`.
+**P2P 60-24 OneClick Evo Positiv is the concrete system.**
 
-The current GitHub Actions build publishes the artifact:
+The **System Builder** is a separate, broader metasystem concept. Historical System Builder material remains for traceability and must not be confused with the current P2P runtime.
 
-`P2P60-24Node-linux-x86_64`
-\n\nSES-065 verified persistent Ed25519 identity: the same local identity store produces the same public key and NodeID after restart, while a corrupt identity store is rejected. The private key remains local; no PKI or global identity service is introduced.\n
+## Source of Truth
+
+Repository state, approved architecture/ontology/Constitution, code, tests and CI evidence outrank chat memory.
+
+For the latest completed engineering change, see [SES-081 closeout](sessions/SES-081/SES-081_CLOSEOUT.md).
