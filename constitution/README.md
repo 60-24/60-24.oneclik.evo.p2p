@@ -1,16 +1,30 @@
 # Constitution Layer
 
-This directory contains constitutional and governance documents.
+This directory is the index for constitutional and governance material.
 
 ## Authority
-The project Constitution is the highest project-level authority. The Engineering Constitution defines engineering process and AI collaboration beneath it.
 
-## Planned documents
-- `PROJECT_CONSTITUTION.md` — project purpose, values and non-negotiable boundaries
-- `ENGINEERING_CONSTITUTION.md` — engineering governance
-- `AUTONOMY_ZONES.md` — GREEN/YELLOW/RED/BLACK AI autonomy
-- `INVARIANTS_FROZEN.md` — protected invariants
-- `ARCHITECTURE_GUARD_CHECKLIST.md` — architecture protection rules
-- `CONSTITUTIONAL_DECISION_TEMPLATE.md` — formal constitutional change process
+The approved project Constitution is the highest project-level authority.
 
-Until a document is formally approved, this directory must not be treated as containing frozen rules merely because a draft exists.
+The repository currently also contains the **Engineering Constitution** at:
+
+`P2P_60-24_ENGINEERING_CONSTITUTION_v1.0.md`
+
+It defines engineering process and AI collaboration beneath the project-level Constitution.
+
+## Important distinction
+
+The files listed below are **planned/documentary areas**, not proof that those documents currently exist:
+
+- `PROJECT_CONSTITUTION.md`
+- `ENGINEERING_CONSTITUTION.md`
+- `AUTONOMY_ZONES.md`
+- `INVARIANTS_FROZEN.md`
+- `ARCHITECTURE_GUARD_CHECKLIST.md`
+- `CONSTITUTIONAL_DECISION_TEMPLATE.md`
+
+Do not infer frozen rules from a planned filename.
+
+## Working rule
+
+When a change affects Constitution, foundational ontology, Trust semantics, fundamental security/governance or another RED-zone boundary, stop at analysis/proposal and require the appropriate human decision.
