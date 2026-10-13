@@ -1,6 +1,6 @@
 # SES-082 — CLOSEOUT
 
-**Status:** GREEN evidence recorded; integration to `main` remains pending PR review/merge.  
+**Status:** STONE — merged to `main` after GREEN regression and cross-platform CI evidence.  
 **PR:** https://github.com/60-24/60-24.oneclik.evo.p2p/pull/9
 
 ## Confirmed GAP
@@ -23,8 +23,8 @@
 
 ## Boundary / remaining work
 - This proves rejection of outbound CR/LF messages in the CI environment; it does not establish production readiness or end-to-end encryption.
-- PR #9 is not merged. Do not claim the fix is part of `main` until integration is confirmed.
+- PR #9 was merged by squash into `main`; merge commit: `119610ffdd179874da99c4074409072cfa36623c`.
 - Next logical inspection: inbound application-message validation, without expanding scope into unrelated architecture work.
 
 ## Closeout
-The SES-082 implementation and its Linux/Windows regression gates are GREEN. The session evidence is recorded; merging remains a separate integration decision.
+The SES-082 implementation and its Linux/Windows regression gates are GREEN. Evidence is recorded and the fix is integrated into `main`.
