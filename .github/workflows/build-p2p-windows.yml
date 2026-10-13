@@ -41,6 +41,7 @@ jobs:
           python -m pytest -q sessions/SES-069/test_coalesced_frames.py
           python -m pytest -q sessions/SES-081/test_transport_boundary.py
           python -m pytest -q sessions/SES-082/test_single_line_outbound_message.py
+          python -m pytest -q sessions/SES-083/test_inbound_message_line_validation.py
       - name: Build Windows executable
         shell: pwsh
         run: python -m PyInstaller --onefile --name P2P60-24Node --paths . demo/p2p_node_cli.py
