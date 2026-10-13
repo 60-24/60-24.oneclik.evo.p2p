@@ -157,6 +157,8 @@ class P2PNode:
         return RESPONSE
 
     def send(self, host: str, port: int, message: str) -> str:
+        if "\n" in message or "\r" in message:
+            raise ValueError("message must be a single line")
         with self.transport.connect(
             host, port, CONNECT_TIMEOUT_SECONDS
         ) as conn:
