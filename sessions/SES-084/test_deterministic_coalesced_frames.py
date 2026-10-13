@@ -20,7 +20,7 @@ class ChunkSocket:
 
 
 def test_receive_line_preserves_second_frame_from_same_recv():
-    conn = ChunkSocket([b"AUTH signature\\napplication-message\\n"])
+    conn = ChunkSocket([b"AUTH signature\napplication-message\n"])
     buffer = bytearray()
 
     assert _receive_line(conn, buffer) == "AUTH signature"
