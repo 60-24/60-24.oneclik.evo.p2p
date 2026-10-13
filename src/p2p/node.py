@@ -62,6 +62,12 @@ def _receive_line(conn: socket.socket, buffer: bytearray) -> str:
     return line.decode("utf-8")
 
 
+def _validate_single_line_message(message: str) -> str:
+    if "\n" in message or "\r" in message:
+        raise ValueError("message must be a single line")
+    return message
+
+
 def _identity_path_for_label(label: str) -> Path:
     label_hash = hashlib.sha256(label.encode("utf-8")).hexdigest()[:16]
     return Path.home() / IDENTITY_DIR_NAME / f"{label_hash}.key"
@@ -147,7 +153,9 @@ class P2PNode:
                 auth_payload(peer_id, self.node_id, server_challenge),
             )
             self.last_peer_id = peer_id
-            self.last_message = _receive_line(conn, buffer)
+            self.last_message = _validate_single_line_message(
+                _receive_line(conn, buffer)
+            )
             print(
                 f"node {self.label} received from {peer_label}: "
                 f"{self.last_message}",
@@ -157,8 +165,7 @@ class P2PNode:
         return RESPONSE
 
     def send(self, host: str, port: int, message: str) -> str:
-        if "\n" in message or "\r" in message:
-            raise ValueError("message must be a single line")
+        _validate_single_line_message(message)
         with self.transport.connect(
             host, port, CONNECT_TIMEOUT_SECONDS
         ) as conn:
