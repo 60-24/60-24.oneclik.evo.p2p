@@ -1,6 +1,6 @@
 # SES-084 — CLOSEOUT
 
-Status: GREEN pending CI evidence; no protocol implementation changed.
+Status: GREEN — deterministic regression test passed in Linux and Windows CI. PR #11 remains open for integration.
 
 ## INSPECT
 Reviewed `src/p2p/node.py`, the existing SES-069 TCP integration test, and Linux/Windows CI workflow commands on `main` at `336684c06c90284d053b10f6d4cf60aa2770ad20`.
@@ -14,7 +14,14 @@ Added `sessions/SES-084/test_deterministic_coalesced_frames.py`. Its socket stub
 No runtime code or protocol behavior was changed.
 
 ## EVIDENCE
-Pending Linux/Windows CI on this branch. Do not mark STONE until both workflows execute the new test successfully.
+PR #11 head `9007ca16768102406229199f93b23a335933f82a):
+- Linux P2P executable workflow 38373172670: SUCCESS; regression test step passed.
+- Windows P2P executable workflow 38373172815: SUCCESS; regression test step passed.
+- Android APK workflow 38373172333: SUCCESS.
+- E2E integration workflow 38373172510: SUCCESS.
+- Two-node proof workflow 38373172341: SUCCESS.
+- Concrete-node workflow 38373172819: SUCCESS.
+- Beta local execution workflow 38373172537: SUCCESS.
 
 ## BOUNDARY
-This improves deterministic regression coverage only. It does not claim a protocol defect, production readiness, or end-to-end encryption.
+This improves deterministic regression coverage only. It does not claim a protocol defect, production readiness, or end-to-end encryption. PR #11 has not been merged.
