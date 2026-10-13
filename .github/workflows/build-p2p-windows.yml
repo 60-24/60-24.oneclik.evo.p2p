@@ -39,6 +39,7 @@ jobs:
           python -m pytest -q sessions/SES-067/test_frame_size_limit.py
           python -m pytest -q sessions/SES-068/test_incomplete_frame_eof.py
           python -m pytest -q sessions/SES-069/test_coalesced_frames.py
+          python -m pytest -q sessions/SES-084/test_deterministic_coalesced_frames.py
           python -m pytest -q sessions/SES-081/test_transport_boundary.py
           python -m pytest -q sessions/SES-082/test_single_line_outbound_message.py
           python -m pytest -q sessions/SES-083/test_inbound_message_line_validation.py
