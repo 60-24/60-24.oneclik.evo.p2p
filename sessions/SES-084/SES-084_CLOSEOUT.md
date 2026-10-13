@@ -1,6 +1,6 @@
 # SES-084 — CLOSEOUT
 
-Status: GREEN — deterministic regression test passed in Linux and Windows CI. PR #11 remains open for integration.
+Status: STONE — PR #11 squash-merged into main. Merge commit: `825b55a5fe7d5e887c4e3971aed8bb028796322c`.
 
 ## INSPECT
 Reviewed `src/p2p/node.py`, the existing SES-069 TCP integration test, and Linux/Windows CI workflow commands on `main` at `336684c06c90284d053b10f6d4cf60aa2770ad20`.
@@ -14,7 +14,7 @@ Added `sessions/SES-084/test_deterministic_coalesced_frames.py`. Its socket stub
 No runtime code or protocol behavior was changed.
 
 ## EVIDENCE
-Tested PR head: `9007ca16768102406229199f93b23a335933f82a` (all listed workflow runs passed on this code head; the subsequent commit only updates this closeout).
+Tested PR head: `54b613a2edf9e9263f37f239eb5463ead5380558`. Linux and Windows regression workflows and the other listed workflows passed on this exact PR head.
 - Linux P2P executable workflow 38373172670: SUCCESS; regression test step passed.
 - Windows P2P executable workflow 38373172815: SUCCESS; regression test step passed.
 - Android APK workflow 38373172333: SUCCESS.
@@ -24,4 +24,4 @@ Tested PR head: `9007ca16768102406229199f93b23a335933f82a` (all listed workflow 
 - Beta local execution workflow 38373172537: SUCCESS.
 
 ## BOUNDARY
-This improves deterministic regression coverage only. It does not claim a protocol defect, production readiness, or end-to-end encryption. PR #11 has not been merged.
+This improves deterministic regression coverage only. It does not claim a protocol defect, production readiness, or end-to-end encryption. PR #11 was merged after all listed workflows passed on head `54b613a2edf9e9263f37f239eb5463ead5380558`. The merge integrates tests and CI wiring only; no runtime code changed.
