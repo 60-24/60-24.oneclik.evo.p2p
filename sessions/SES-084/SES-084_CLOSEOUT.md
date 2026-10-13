@@ -14,7 +14,7 @@ Added `sessions/SES-084/test_deterministic_coalesced_frames.py`. Its socket stub
 No runtime code or protocol behavior was changed.
 
 ## EVIDENCE
-PR #11 head `9007ca16768102406229199f93b23a335933f82a):
+Tested PR head: `9007ca16768102406229199f93b23a335933f82a` (all listed workflow runs passed on this code head; the subsequent commit only updates this closeout).
 - Linux P2P executable workflow 38373172670: SUCCESS; regression test step passed.
 - Windows P2P executable workflow 38373172815: SUCCESS; regression test step passed.
 - Android APK workflow 38373172333: SUCCESS.
