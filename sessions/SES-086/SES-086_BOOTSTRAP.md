@@ -1,51 +1,47 @@
 # SES-086 — SESSION BOOTSTRAP
 
-**Projekt:** P2P 60-24 OneClick Evo Positiv  
-**Repo:** `60-24/60-24.oneclik.evo.p2p`  
-**Branch roboczy:** `ses-086-tagology-proposal`  
-**Branch docelowy:** `main`  
-**Stan bazowy:** `3026d8149e2320a12ab0b0b6384d2242b459bd80`  
-**Poprzednia sesja:** SES-085 — STONE  
-**Temat:** Tagologia jako proponowana warstwa semantyczna
+**Project:** P2P 60-24 OneClick Evo Positiv  
+**Working branch:** ses-086-tagology-dual-layer  
+**Review PR:** #13 (existing proposal PR; branch to be advanced only after verifying ancestry)  
+**Base:** main at 3026d8149e2320a12ab0b0b6384d2242b459bd80  
+**Previous session:** SES-085 — STONE  
+**Topic:** Tagologia as two independent evolutionary layers
 
-## Cel
+## Architectural direction
 
-Przygotować Tagologię krok po kroku, zachowując istniejący runtime P2P i wymagane granice zatwierdzania.
+- **Tagologia H:** human-facing concepts, definitions, context, relations, provenance, revisions, and explicit disagreement; similar to a collaborative dictionary/encyclopedia plus ontology.
+- **Tagologia S:** machine-facing formal statements, typed/versioned contracts, deterministic normalization, and local validation.
+- **H↔S bridge:** optional, explicit, versioned mapping with declared scope and lossiness.
+- H and S evolve independently. No silent coupling and no assumption that every concept/field must map.
+- Syntax, meaning, truth, evidence, identity, authorization, and local trust remain separate.
 
-## Wykonana inspekcja
+## Artifacts on working branch
 
-- Odczytano `AGENTS.md`, Engineering Constitution, `docs/CURRENT_STATE.md`, `docs/REPOSITORY_MAP.md`, `architecture/README.md`, `ontology/README.md`, `src/p2p/protocol.py` i `src/p2p/transport.py`.
-- Istniejący runtime obsługuje uwierzytelnione połączenie Node A ↔ Node B; protokół obecnie opisuje handshake, a nie Tagologię.
-- Architektura i ontologia mają katalogi kanoniczne, ale nie zawierają zatwierdzonego kontraktu Tagologii.
-- Zmiana fundamentów ontologii jest w strefie RED; zmiana formatu komunikatu/protokołu wymaga zatwierdzenia YELLOW.
+- architecture/proposals/TAGOLOGY_PROPOSAL_v0.1.md — revised two-layer model and bridge.
+- sessions/SES-086/SES-086_TAGOLOGY_TEST_PLAN.md — test gates for H, S, bridge, and separation invariants.
+- sessions/SES-086/SES-086_BOOTSTRAP.md — this handoff.
 
-## Artefakty przygotowane na gałęzi roboczej
+These are experimental proposals, not approved canonical ontology or wire contract.
 
-- `architecture/proposals/TAGOLOGY_PROPOSAL_v0.1.md` — propozycja koncepcji, typów, reguł kompozycji, ewolucji i kryteriów akceptacji.
-- `sessions/SES-086/SES-086_TAGOLOGY_TEST_PLAN.md` — potwierdzone fakty, realny GAP dokumentacyjny, granice i plan testów.
+## INSPECT / UNDERSTAND / GAP
 
-To dokumenty propozycyjne. Nie są zatwierdzoną ontologią ani dowodem implementacji.
+- Existing Node A ↔ Node B runtime, handshake and TCP framing are out of scope.
+- Current repo does not yet contain an approved Tagologia H/S contract.
+- There is no Tagologia implementation and no Tagologia test result to report.
+- The genuine next task is a human review of the layer boundaries and invariants, not immediate runtime coding.
 
-## Kolejność dalszych działań
+## Next steps
 
-1. **REVIEW:** człowiek zatwierdza lub koryguje kierunek i kandydackie typy.
-2. **CONTRACT:** po decyzji opracować wersjonowany kontrakt semantyczny oraz przykłady poprawne i niepoprawne.
-3. **RED:** napisać testy walidatora kontraktu, bez ingerencji w runtime.
-4. **IMPLEMENT:** dodać najmniejszy czysty walidator, jeśli testy wykazują realny zakres implementacji.
-5. **GREEN:** uruchomić testy lokalne i CI; raportować wyłącznie potwierdzone wyniki.
-6. **INTEGRATION REVIEW:** osobno zaproponować sposób osadzenia struktury w wiadomości aplikacyjnej.
-7. **EVIDENCE:** zapisać dokładne SHA, wyniki i ograniczenia.
-8. **STONE:** dopiero po spełnieniu kryteriów i wymaganej akceptacji.
+1. Review the two-layer model and bridge principles.
+2. After approval, settle H identity/revision/governance policy.
+3. Separately settle S envelope, schema/versioning, normalization, unknown-field and compatibility rules.
+4. Define explicit H↔S mapping fixtures.
+5. Create local RED fixtures, then implement the smallest pure validators.
+6. Run tests/CI and record exact evidence.
+7. Only after a separate review consider P2P message integration.
 
-## Zakres zakazany na tym etapie
+## RED boundary
 
-- Nie zmieniać HELLO/WELCOME/AUTH, framingu TCP, NodeID ani modelu zaufania.
-- Nie promować propozycji do katalogu kanonicznej ontologii bez decyzji człowieka.
-- Nie tworzyć GUI/autocomplete przed walidacją kontraktu.
-- Nie utożsamiać poprawności składni z prawdą twierdzenia ani zaufaniem do nadawcy.
-- Nie oznaczać sesji jako STONE bez dowodów.
+Do not change HELLO/WELCOME/AUTH, TCP framing, NodeID, trust behavior, canonical ontology, or network message format without the required approval. Do not mark GREEN/STONE without test evidence and decision gates.
 
-## Stan
-
-**PROPOSAL PREPARED — REVIEW REQUIRED.**  
-Nie uruchamiano testów Tagologii, ponieważ implementacja jeszcze nie istnieje. Nie twierdzi się GREEN ani STONE.
+**Status:** PROPOSAL REFINED — REVIEW REQUIRED.
