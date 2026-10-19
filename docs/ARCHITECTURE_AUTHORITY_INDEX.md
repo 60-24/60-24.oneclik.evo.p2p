@@ -32,6 +32,7 @@
 
 | Artifact | Declared status | Safe interpretation |
 |---|---|---|
+| `sessions/SES-003/DEC-005_SYSTEM_BUILDER_GRAPH_BACKBONE.md` | APPROVED | Graph is the structural backbone of System Builder; this does not approve a specific storage technology or every downstream contract. |
 | `sessions/SES-003/DEC-006_SYSTEM_BUILDER_GRAPH_INVARIANTS.md` | APPROVED | Approved semantic graph invariants; this does not automatically approve other graph decisions or a technology choice. |
 | `sessions/SES-003/DEC-007_SYSTEM_BUILDER_GRAPH_SEMANTIC_MODEL_AND_CONTRACTS.md` | PROPOSED FOR HUMAN APPROVAL | Not approved canonical ontology. |
 | `sessions/SES-003/DEC-008_SYSTEM_BUILDER_SCHEMA_INDEPENDENT_GRAPH_CONTRACT_TESTS.md` | PROPOSED FOR HUMAN APPROVAL | Proposed conformance contract/tests; do not treat as approved active conformance proof. |
