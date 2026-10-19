@@ -20,6 +20,7 @@
 - `architecture/proposals/TAGOLOGY_PROPOSAL_v0.1.md` — experimental architecture proposal (content model v0.2).
 - `sessions/SES-086/SES-086_TAGOLOGY_TEST_PLAN.md` — validation plan.
 - `sessions/SES-086/SES-086_TAGOLOGY_WORKED_EXAMPLE.md` — human ambiguity example, S statement, mapping boundaries, negative cases, acceptance criteria.
+- `sessions/SES-086/SES-086_HUMAN_COMPREHENSION_CHECK.md` — proposed paired-scenario evaluation protocol; no participant results claimed.
 - `experiments/tagologia_s/validator.py` — isolated standard-library prototype for one S request envelope.
 - `experiments/tagologia_s/bridge.py` — metadata-only H↔S mapping validator; it does not translate statements.
 - `experiments/tagologia_s/test_validator.py` — 13 contract tests across S envelope and mapping metadata.
@@ -42,7 +43,7 @@ All Tagologia artifacts remain experimental. Nothing is a canonical ontology or 
 
 - The prototype does not implement Tagologia H or perform H↔S translation; bridge validation covers mapping metadata only.
 - It does not validate timestamps or a full JSON Schema, and it does not establish truth, identity, authorization, or trust.
-- Human comprehension is not yet empirically measured.
+- Human comprehension is not yet empirically measured; the new protocol defines how to test it without claiming results.
 - A passing unit suite would show only prototype behavior, not production readiness or proof that Tagologia improves understanding.
 
 ## Next steps
