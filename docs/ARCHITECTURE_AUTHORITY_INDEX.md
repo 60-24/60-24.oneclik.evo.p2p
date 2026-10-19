@@ -44,6 +44,9 @@
 | `sessions/SES-004/DEC-014_SYSTEM_BUILDER_GRAPH_CANDIDATE_REGISTRY.md` | ACCEPTED BY HUMAN | Candidate evaluation preparation/registry only; does not itself approve a graph technology. |
 | `sessions/SES-004/DEC-015_SYSTEM_BUILDER_GRAPH_CONCRETE_CANDIDATE_REGISTRY.md` | ACCEPTED BY HUMAN | Concrete candidate registry only; does not itself approve a graph technology. |
 | `sessions/SES-004/G-01_NEO4J_REPRODUCIBLE_RUNTIME_SETUP.md` | PREPARED FOR EXECUTION | Candidate conformance evaluation setup only; explicitly not production architecture or technology selection. |
+| `sessions/SES-004/G-01_NEO4J_CONFORMANCE_EVALUATION_PROTOCOL.md` | PROPOSED FOR EXECUTION; execution not performed | Its own execution-state section says no GS/AC result is claimed. |
+| `sessions/SES-004/G-01_NEO4J_TEST_ENVIRONMENT_SPECIFICATION.md` | PROPOSED FOR EXECUTION; runtime verification pending | GS-01 has not been executed according to the document. |
+| `sessions/SES-004/G-01_NEO4J_CANDIDATE_PROFILE_AND_SEMANTIC_MAPPING.md` | EVALUATION IN PROGRESS | Candidate analysis, not recommendation or conformance proof; it states G-01 is not yet eligible for final architecture. |
 
 ## System Builder and Kernel-DNA
 
