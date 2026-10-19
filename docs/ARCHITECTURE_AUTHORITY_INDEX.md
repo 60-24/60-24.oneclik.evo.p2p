@@ -32,9 +32,9 @@
 
 | Artifact | Declared status | Safe interpretation |
 |---|---|---|
-| `sessions/SES-003/DEC-006_SYSTEM_BUILDER_GRAPH_INVARIANTS.md` | Historical design artifact; recheck source header when reopening | Do not infer approval from location alone. |
+| `sessions/SES-003/DEC-006_SYSTEM_BUILDER_GRAPH_INVARIANTS.md` | APPROVED | Approved semantic graph invariants; this does not automatically approve other graph decisions or a technology choice. |
 | `sessions/SES-003/DEC-007_SYSTEM_BUILDER_GRAPH_SEMANTIC_MODEL_AND_CONTRACTS.md` | PROPOSED FOR HUMAN APPROVAL | Not approved canonical ontology. |
-| `sessions/SES-003/DEC-008_SYSTEM_BUILDER_SCHEMA_INDEPENDENT_GRAPH_CONTRACT_TESTS.md` | Historical session artifact | Inspect dependencies and execution evidence before treating it as active conformance proof. |
+| `sessions/SES-003/DEC-008_SYSTEM_BUILDER_SCHEMA_INDEPENDENT_GRAPH_CONTRACT_TESTS.md` | PROPOSED FOR HUMAN APPROVAL | Proposed conformance contract/tests; do not treat as approved active conformance proof. |
 | `sessions/SES-003/DEC-009_SYSTEM_BUILDER_GRAPH_CONFORMANCE_SCENARIOS.md` | PROPOSED FOR HUMAN APPROVAL | Proposal only. |
 | `sessions/SES-004/DEC-011_SYSTEM_BUILDER_GRAPH_TECHNOLOGY_EVALUATION_FRAMEWORK.md` | PROPOSED FOR HUMAN APPROVAL | Not a technology selection. |
 | `sessions/SES-004/DEC-012_SYSTEM_BUILDER_GRAPH_CANDIDATE_EVALUATION_MATRIX.md` | PROPOSED FOR HUMAN APPROVAL | Not proof of final selection. |
