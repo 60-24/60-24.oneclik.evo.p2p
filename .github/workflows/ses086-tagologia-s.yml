@@ -1,0 +1,24 @@
+name: SES-086 Tagologia S Contract
+
+on:
+  pull_request:
+    paths:
+      - "experiments/tagologia_s/**"
+      - ".github/workflows/ses086-tagologia-s.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tagologia-s-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run isolated standard-library contract tests
+        run: python -m unittest discover -s experiments/tagologia_s -p 'test_*.py' -v
