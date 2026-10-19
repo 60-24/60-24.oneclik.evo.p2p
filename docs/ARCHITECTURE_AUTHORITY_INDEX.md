@@ -40,6 +40,10 @@
 | `sessions/SES-004/DEC-011_SYSTEM_BUILDER_GRAPH_TECHNOLOGY_EVALUATION_FRAMEWORK.md` | PROPOSED FOR HUMAN APPROVAL | Not a technology selection. |
 | `sessions/SES-004/DEC-012_SYSTEM_BUILDER_GRAPH_CANDIDATE_EVALUATION_MATRIX.md` | PROPOSED FOR HUMAN APPROVAL | Not proof of final selection. |
 | `sessions/SES-004/DEC-013_SYSTEM_BUILDER_GRAPH_CANDIDATE_SET_AND_EVALUATION_PROTOCOL.md` | PROPOSED FOR HUMAN APPROVAL | Evaluation proposal only. |
+| `sessions/SES-003/DEC-010_SYSTEM_BUILDER_GRAPH_REFERENCE_TEST_MATRIX_AND_ACCEPTANCE_CRITERIA.md` | PROPOSED FOR HUMAN APPROVAL | Reference acceptance matrix proposal; not an approved test gate. |
+| `sessions/SES-004/DEC-014_SYSTEM_BUILDER_GRAPH_CANDIDATE_REGISTRY.md` | ACCEPTED BY HUMAN | Candidate evaluation preparation/registry only; does not itself approve a graph technology. |
+| `sessions/SES-004/DEC-015_SYSTEM_BUILDER_GRAPH_CONCRETE_CANDIDATE_REGISTRY.md` | ACCEPTED BY HUMAN | Concrete candidate registry only; does not itself approve a graph technology. |
+| `sessions/SES-004/G-01_NEO4J_REPRODUCIBLE_RUNTIME_SETUP.md` | PREPARED FOR EXECUTION | Candidate conformance evaluation setup only; explicitly not production architecture or technology selection. |
 
 ## System Builder and Kernel-DNA
 
