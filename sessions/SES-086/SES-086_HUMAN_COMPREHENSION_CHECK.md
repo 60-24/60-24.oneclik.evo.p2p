@@ -1,60 +1,50 @@
 # SES-086 — Human comprehension check
 
-**Status:** evaluation protocol proposal; no participants/results claimed.
-**Question:** does the H/S approach make requests clearer, or merely replace familiar words with unfamiliar labels?
+**Status:** proposed protocol; no participant results claimed.  
+**Question:** does Tagologia H/S improve comprehension, or merely add unfamiliar terminology?
 
-## Method
+## Design correction
 
-Give reviewers each scenario in two forms, in randomized order:
-1. Original natural-language request.
-2. Human-readable summary generated from a typed S statement, including explicit unknowns.
+A fair comparison must present the **same information and the same unknowns** in both forms. Do not compare an underspecified natural-language request with a structured summary that adds a resource ID, operation, expiry, or restrictions: that tests added information, not the representation.
 
-Do not teach reviewers the intended answer first. Ask the same questions after each version. Record correct answers, unresolved items, and time. Compare versions within the same reviewer; do not count a confident guess as correct.
+Use paired forms below. Randomize order within each pair; do not explain the expected answer first.
 
-## Scenario A — underspecified resource
+## Minimal paired comparison matrix
 
-**Natural request:** “Udostępnij mi raport.”
+| Case | Form A — plain language | Form B — explicit H/S-derived summary | Expected understanding |
+|---|---|---|---|
+| A — missing details | “Udostępnij mi raport.” | “Prośba o udostępnienie raportu. Nie podano, który raport, kto ma otrzymać dostęp, jakie operacje, na jak długo ani czy wolno kopiować. Dostęp nie został zatwierdzony.” | Same uncertainty is visible; neither form identifies the resource/recipient or authorizes access. |
+| B — identity vs permission | “Użytkownik został uwierzytelniony. Nie podjęto decyzji o przyznaniu mu dostępu.” | “Tożsamość: uwierzytelniona. Decyzja autoryzacyjna: brak. Wynik: dostęp nieprzyznany.” | Authentication is not authorization; no access is granted by these statements. |
+| C — read-only boundary | “Może odczytać zasób. Nie ustalono, czy wolno go kopiować, zachowywać ani dalej udostępniać.” | “Operacja: read. Kopiowanie, retencja i dalsze udostępnianie: nieokreślone.” | Read access alone does not settle copying, retention, or onward sharing. |
 
-**Structured summary:** “Requester: principal:requester-7. Resource: resource:report-17. Requested operation: read. Copying: not allowed. Expiry: 2026-12-01 00:00 UTC. Authorization: not yet decided.”
+These are illustrative stimuli, not approved ontology or protocol text. Form B must not contain facts absent from Form A.
 
-Expected understanding: the resource and requested operation are explicit in the structured version; the request itself does not grant access. In the original sentence, the report, recipient, operation, duration, and copying rules are unknown.
+## Questions after each form
 
-## Scenario B — identity versus authorization
+1. What is known about the requester/identity?
+2. Which resource or operation is specified?
+3. Which restrictions are explicit?
+4. What remains unknown?
+5. Does the statement itself authorize access? Explain.
 
-**Natural request:** “To zaufany użytkownik, pozwól mu wejść.”
+Score each answer **0** = wrong/unsupported guess, **1** = partly correct, **2** = correct and uncertainty-aware. Record completion time and each false claim that access is authorized.
 
-**Structured summary:** “Requester identity: authenticated. Authorization decision: absent. Local trust assessment: not supplied by this statement. Result: access not authorized by this message.”
+## Results sheet
 
-Expected understanding: authentication and trust do not, by themselves, establish permission.
+Copy one row per reviewer × case × form:
 
-## Scenario C — ambiguous mapping
+| Reviewer (pseudonym) | Case | Form (A/B) | Q1 | Q2 | Q3 | Q4 | Q5 | Total / 10 | Time (sec) | False authorization? (0/1) | Notes |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| | A | | | | | | | | | | |
+| | B | | | | | | | | | | |
+| | C | | | | | | | | | | |
 
-**Natural request:** “Daj mu dostęp tylko do odczytu.”
+Summarize per case: mean score A vs B; median time A vs B; false-authorization count A vs B; common misunderstandings. Keep individual results separate from interpretation.
 
-**Structured summary:** “Requested operation: read. Copying, retention, and onward sharing: unspecified unless separately constrained. Mapping from the human phrase is partial/context-bound.”
+## Pilot and decision rule
 
-Expected understanding: “read” does not silently grant or deny copying, retention, or onward sharing.
-
-## Questions after each version
-
-1. Who is making the request, if known?
-2. Which resource and operation are specified?
-3. What restrictions are explicit?
-4. What remains unknown or ambiguous?
-5. Does this message itself authorize the operation? Why?
-
-## Scoring
-
-- Score each answer 0 (wrong/guess), 1 (partly correct), or 2 (correct and identifies uncertainty).
-- Record completion time and whether the reviewer incorrectly inferred authorization.
-- Primary measure: average score per scenario/version.
-- Safety measure: number of false claims that access is authorized.
-- Use a small pilot (at least 5 reviewers if available) to find confusing wording, not to claim statistical proof.
-
-## Decision rule for the pilot
-
-Keep the approach only if the structured summary improves identification of explicit fields and unknowns without increasing false authorization assumptions. If terminology adds burden without improving comprehension, simplify H labels and summaries before adding concepts.
+A small pilot (target at least 5 reviewers if available) is for finding confusing wording, not statistical proof. Keep the approach only if the paired form improves identification of explicit facts/unknowns **without increasing false authorization assumptions**. If terminology adds burden without a clear benefit, simplify the H summary before adding concepts.
 
 ## Limitations
 
-This is a test protocol, not evidence of improvement. Results depend on reviewer familiarity, translation quality, scenario selection, and presentation order. S validation success cannot substitute for human comprehension results.
+No empirical result is claimed until reviewers actually complete the sheet. A successful S unit-test run does not establish human comprehension. Results depend on reviewer background, wording, order, and scenario selection.
