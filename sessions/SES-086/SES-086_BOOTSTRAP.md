@@ -32,7 +32,8 @@ All Tagologia artifacts remain experimental. Nothing is a canonical ontology or 
 
 - Added a local-only validator for resource requests; no P2P runtime imports or network calls.
 - Tests cover accepted input, deterministic JSON output, missing field/reference, unsupported schema/version/operation, unknown field, and wrong input type.
-- A local isolated reproduction of the 9-test suite passed. The exact GitHub commit's Actions run has **not yet been observed**; do not claim CI GREEN until run evidence is available.
+- GitHub Actions workflow **SES-086 Tagologia S Contract** completed successfully: run `39207923630`, job `tagologia-s-contract`, including the exact checkout and test command. The run is associated with the current branch head inspected for this session. This is GREEN for the isolated S contract tests only, not for Tagologia H, the bridge, runtime integration, or production readiness.
+- A local isolated reproduction of the 9-test suite also passed.
 - GitHub API read-back confirmed the validator, tests, and workflow files exist on the working branch.
 - No runtime, handshake, TCP framing, NodeID, trust behavior, or canonical ontology was changed.
 
