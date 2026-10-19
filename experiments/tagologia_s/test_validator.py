@@ -76,5 +76,66 @@ class TagologiaSContractTests(unittest.TestCase):
             validate_statement(item)
 
 
+
+    def test_explicit_bridge_mapping_is_accepted(self):
+        from bridge import validate_mapping
+        mapping = {
+            "h_concept_id": "h:read-only",
+            "h_revision": "3",
+            "s_term_id": "s:operation.read",
+            "s_schema_version": "0.1",
+            "direction": "H_TO_S",
+            "scope": "resource-request",
+            "mapping_kind": "lossy",
+            "status": "mapped",
+        }
+        self.assertEqual(validate_mapping(mapping)["mapping_kind"], "lossy")
+
+    def test_unmapped_h_concept_does_not_invent_s_target(self):
+        from bridge import MappingError, validate_mapping
+        mapping = {
+            "h_concept_id": "h:trust",
+            "h_revision": "1",
+            "s_term_id": None,
+            "s_schema_version": None,
+            "direction": "H_TO_S",
+            "scope": "resource-request",
+            "mapping_kind": "lossy",
+            "status": "unmapped",
+        }
+        self.assertIsNone(validate_mapping(mapping)["s_term_id"])
+        mapping["s_term_id"] = "s:authorization"
+        with self.assertRaisesRegex(MappingError, "unmapped_target_must_be_null"):
+            validate_mapping(mapping)
+
+    def test_ambiguous_mapping_cannot_claim_exactness(self):
+        from bridge import MappingError, validate_mapping
+        mapping = {
+            "h_concept_id": "h:share",
+            "h_revision": "2",
+            "s_term_id": None,
+            "s_schema_version": None,
+            "direction": "H_TO_S",
+            "scope": "unspecified",
+            "mapping_kind": "exact",
+            "status": "ambiguous",
+        }
+        with self.assertRaisesRegex(MappingError, "ambiguous_cannot_be_exact"):
+            validate_mapping(mapping)
+
+    def test_bridge_requires_scope(self):
+        from bridge import MappingError, validate_mapping
+        mapping = {
+            "h_concept_id": "h:read-only",
+            "h_revision": "3",
+            "s_term_id": "s:operation.read",
+            "s_schema_version": "0.1",
+            "direction": "H_TO_S",
+            "mapping_kind": "lossy",
+            "status": "mapped",
+        }
+        with self.assertRaisesRegex(MappingError, "missing_fields:scope"):
+            validate_mapping(mapping)
+
 if __name__ == "__main__":
     unittest.main()
