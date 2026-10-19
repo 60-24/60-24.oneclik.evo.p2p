@@ -1,8 +1,9 @@
 # Current State — P2P 60-24 OneClick Evo Positiv
 
-**As of:** 2026-10-07  
+**As of:** 2026-10-19  
 **Branch:** `main`    
-**Latest closed session:** SES-081 — STONE
+**Latest closed technical session:** SES-085 — STONE
+**Latest documentation work:** SES-087 in progress (authority/status index; not a runtime change)
 
 ## 1. Identity of the project
 
@@ -99,7 +100,22 @@ SES-081 closeout:
 
 `sessions/SES-081/SES-081_CLOSEOUT.md`
 
-## 6. Current engineering question
+## 6. Later verified engineering checkpoints (through 2026-10-19)
+
+The following sessions were recorded after the earlier SES-081 snapshot:
+
+- SES-082: outgoing single-line message validation; see `sessions/SES-082/`.
+- SES-083: inbound message line validation; merged to `main` according to its session record.
+- SES-084: deterministic regression test for coalesced TCP frames.
+- SES-085: regression test for EOF after authenticated handshake but before a complete application frame. The test checks the listener terminates, rejects the incomplete frame, records the authenticated peer, and leaves `last_message` unset. See `sessions/SES-085/SES-085_CLOSEOUT.md` and `sessions/SES-085/test_eof_after_auth.py`.
+
+The Linux and Windows build workflows both invoke the SES-085 test. SES-085 closeout records Linux and Windows CI success for its tested implementation commit. This does **not** establish CI status for later documentation-only commits or every current HEAD.
+
+SES-086 Tagologia is a separate experimental proposal, not merged into `main`. The proposal and its isolated validator are not part of the P2P runtime. See `docs/TAGOLOGY_DEFERRED.md` for the current defer decision.
+
+SES-087 is currently documenting architecture authority and traceability. No runtime or canonical ontology change has been made in that work.
+
+## 7. Current engineering question
 
 The next session must not assume that another feature is required.
 
@@ -114,7 +130,7 @@ First inspect:
 
 Then identify **one real GAP or NO GAP**.
 
-## 7. Authority
+## 8. Authority
 
 When information conflicts:
 
@@ -129,6 +145,6 @@ When information conflicts:
 
 Repository state wins over conversational memory.
 
-## 8. One-line status
+## 9. One-line status
 
 > **A real, small, authenticated and testable Node A ↔ Node B foundation exists; the project is now strengthening its boundaries before adding the next layer.**
