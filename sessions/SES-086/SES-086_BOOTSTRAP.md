@@ -21,7 +21,8 @@
 - `sessions/SES-086/SES-086_TAGOLOGY_TEST_PLAN.md` — validation plan.
 - `sessions/SES-086/SES-086_TAGOLOGY_WORKED_EXAMPLE.md` — human ambiguity example, S statement, mapping boundaries, negative cases, acceptance criteria.
 - `experiments/tagologia_s/validator.py` — isolated standard-library prototype for one S request envelope.
-- `experiments/tagologia_s/test_validator.py` — 9 contract tests.
+- `experiments/tagologia_s/bridge.py` — metadata-only H↔S mapping validator; it does not translate statements.
+- `experiments/tagologia_s/test_validator.py` — 13 contract tests across S envelope and mapping metadata.
 - `experiments/tagologia_s/README.md` — scope, limits, local test command.
 - `.github/workflows/ses086-tagologia-s.yml` — PR-path CI test workflow.
 - This bootstrap.
@@ -39,7 +40,7 @@ All Tagologia artifacts remain experimental. Nothing is a canonical ontology or 
 
 ## Current boundary / gaps
 
-- The prototype does not implement Tagologia H or validate the H↔S bridge yet.
+- The prototype does not implement Tagologia H or perform H↔S translation; bridge validation covers mapping metadata only.
 - It does not validate timestamps or a full JSON Schema, and it does not establish truth, identity, authorization, or trust.
 - Human comprehension is not yet empirically measured.
 - A passing unit suite would show only prototype behavior, not production readiness or proof that Tagologia improves understanding.
