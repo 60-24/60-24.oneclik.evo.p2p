@@ -12,9 +12,6 @@ on:
 
 jobs:
   gs-02:
-    # DISABLED: project policy prohibits Docker/Kubernetes execution.
-    # Keep the candidate workflow as reference until a compliant path is approved.
-    if: false
     name: GS-02 — Typed Edge
     runs-on: ubuntu-latest
 
