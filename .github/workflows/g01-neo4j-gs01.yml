@@ -10,6 +10,9 @@ on:
 
 jobs:
   gs-01:
+    # DISABLED: project policy prohibits Docker/Kubernetes execution.
+    # Keep the candidate workflow as reference until a compliant path is approved.
+    if: false
     name: GS-01 — Unique Node Identity
     runs-on: ubuntu-latest
 
