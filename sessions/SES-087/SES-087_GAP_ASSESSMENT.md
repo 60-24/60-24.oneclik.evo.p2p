@@ -1,6 +1,6 @@
 # SES-087 — GAP ASSESSMENT: ARCHITECTURE AUTHORITY & TRACEABILITY
 
-**Status:** GAP CONFIRMED at repository-organization level; no implementation change.  
+**Status:** INITIAL AUTHORITY-INDEX GAP MITIGATED; audit remains in progress; no runtime implementation change.  
 **Branch:** `main`  
 **Scope:** Constitution → Ontology → Graph → Kernel-DNA → Contracts  
 **Decision boundary:** Analysis only. No foundational ontology or constitutional approval inferred.
@@ -21,7 +21,7 @@
 
 ## 2. Confirmed GAP
 
-A contributor can locate many useful historical design artifacts, but the repository does not yet provide one concise, current index that clearly distinguishes:
+At the initial inspection, the repository lacked one concise, current index distinguishing artifact authority. The documentation gap has been partially mitigated by `docs/ARCHITECTURE_AUTHORITY_INDEX.md`. The index remains non-normative and should not be mistaken for approval or a complete authority registry. The required distinctions are:
 
 - approved/binding,
 - active but provisional,
@@ -38,9 +38,9 @@ The System Builder's own rule is that a stored proposal must not silently become
 
 Therefore, building more ontology or Kernel-DNA now risks making a provisional concept appear canonical. First make the status of existing artifacts easy to inspect.
 
-## 4. Minimal proposed action
+## 4. Mitigation recorded
 
-Create a small **Architecture & Authority Index** under `docs/` that:
+`docs/ARCHITECTURE_AUTHORITY_INDEX.md` has been created, read back from GitHub, and checked against the declared statuses in DEC-001–DEC-015. It is documentary and non-normative. It:
 1. lists only verified existing artifacts;
 2. records their declared status verbatim or conservatively;
 3. links each item to its source;
@@ -55,8 +55,8 @@ This index would be navigational documentation only. It would not approve the pr
 
 No human approval is needed merely to prepare a factual index, provided it makes no normative decisions. Any attempt to designate a foundational ontology, approve DEC-007/DEC-009, or freeze Kernel-DNA semantics remains outside autonomous execution and must be presented for human decision.
 
-## 6. Next step
+## 6. Updated next step
 
-Proceed to prepare the index as a documentation-only change, then verify its links and status labels against the source documents. Do not start implementation or create a new canonical ontology in this step.
+The original index-creation task is complete. SES-087 audit checkpoint 04 records the current authority inventory, commit-specific CI evidence, and a high-priority conflict: the G-01 Neo4j workflows use Docker despite the project's standing no-Docker/no-Kubernetes constraint. Do not execute those workflows. Before Graph candidate evaluation, resolve the workflow conflict and obtain the required human decisions for DEC-007–DEC-013. Do not start runtime implementation or create a new canonical ontology in this step.
 
 **Evidence boundary:** the inventory is based on GitHub files and directory listings read during SES-087. No claim is made that no other historical material exists elsewhere in the repository; the index should point to known artifacts and remain amendable.
