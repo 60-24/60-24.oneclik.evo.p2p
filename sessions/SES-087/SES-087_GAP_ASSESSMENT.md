@@ -57,6 +57,6 @@ No human approval is needed merely to prepare a factual index, provided it makes
 
 ## 6. Updated next step
 
-The original index-creation task is complete. SES-087 audit checkpoint 04 records the current authority inventory, commit-specific CI evidence, and a high-priority conflict: the G-01 Neo4j workflows use Docker despite the project's standing no-Docker/no-Kubernetes constraint. Do not execute those workflows. Before Graph candidate evaluation, resolve the workflow conflict and obtain the required human decisions for DEC-007–DEC-013. Do not start runtime implementation or create a new canonical ontology in this step.
+The original index-creation task is complete. SES-087 audit checkpoint 04 records the current authority inventory, commit-specific CI evidence, and a high-priority conflict: the G-01 Neo4j workflows use Docker despite the project's standing no-Docker/no-Kubernetes constraint. Those workflows are now quarantined with job-level `if: false` guards; do not remove the guards. Before Graph candidate evaluation, obtain the required human decisions for DEC-007–DEC-013 and define a compliant execution path. Do not start runtime implementation or create a new canonical ontology in this step.
 
 **Evidence boundary:** the inventory is based on GitHub files and directory listings read during SES-087. No claim is made that no other historical material exists elsewhere in the repository; the index should point to known artifacts and remain amendable.
