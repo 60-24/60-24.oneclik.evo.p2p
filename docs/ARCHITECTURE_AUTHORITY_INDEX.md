@@ -73,7 +73,7 @@ CI evidence applies to the tested commit and checks only. It does not approve on
 - These workflows use Docker for developer/CI-side Graph candidate evaluation. This is separate from the shipped P2P runtime: the end user must not need to install Docker, Kubernetes, Neo4j or other developer/test infrastructure to run the finished product.
 - The job-level `if: false` guards added during SES-087 were removed after the constraint was clarified; both workflows are restored for evaluation use. Their execution remains optional and is not a runtime dependency.
 - No G-01 Neo4j run appeared among the latest 100 workflow-run records inspected before the quarantine; that bounded observation does not prove no older run exists.
-- These workflows are not evidence of Graph conformance until they actually execute and their results are inspected. DEC-007–DEC-013 remain subject to the recorded human-approval boundary.
+- Two bounded developer-side checks have now succeeded: G-01 GS-01 run 39380809928 and GS-02 run 39380814995. See `sessions/SES-087/SES-087_CHECKPOINT_07.md`. These results cover only their configured checks; they do not establish full Graph conformance, production suitability, or approval of DEC-007–DEC-013.
 
 ## Deferred proposal
 
