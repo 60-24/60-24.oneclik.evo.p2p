@@ -70,9 +70,10 @@ CI evidence applies to the tested commit and checks only. It does not approve on
 ## Workflow execution constraint — SES-087 audit
 
 - `.github/workflows/g01-neo4j-gs01.yml` and `.github/workflows/g01-neo4j-gs02.yml` define Neo4j service containers and invoke Docker commands.
-- The project's standing constraint prohibits Docker/Kubernetes. Do not dispatch these workflows or trigger them by editing watched paths until the conflict is resolved.
+- The project's standing constraint prohibits Docker/Kubernetes. Both jobs were quarantined on 2026-10-20 with job-level `if: false` guards; see `sessions/SES-087/SES-087_CHECKPOINT_05.md`.
+- The workflow files remain as reference material only. Do not remove the guards or re-enable execution without an explicit human decision and a compliant evaluation path.
 - SES-087 audit checkpoint 04 found no G-01 Neo4j run among the latest 100 workflow-run records inspected; this does not prove no older run exists.
-- These workflows are not evidence of Graph conformance. Candidate evaluation remains blocked by the declared human-approval status of DEC-007–DEC-013 and by the execution constraint.
+- These workflows are not evidence of Graph conformance. Candidate evaluation remains blocked by the declared human-approval status of DEC-007–DEC-013.
 
 ## Deferred proposal
 
