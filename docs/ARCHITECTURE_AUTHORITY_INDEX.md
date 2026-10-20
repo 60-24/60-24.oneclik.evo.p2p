@@ -21,7 +21,7 @@
 | `constitution/README.md` | Index; planned areas disclosed | Explicitly warns that listed project-constitution and frozen-invariant documents are not proven to exist. |
 | `docs/SYSTEM_BUILDER.md` | Architectural direction | Defines the pipeline; does not blanket-approve historical artifacts. |
 | `docs/REPOSITORY_MAP.md` | Repository orientation | Explains areas and source-of-truth boundaries. |
-| `docs/CURRENT_STATE.md` | Runtime snapshot dated 2026-10-07 | Not a current CI report; verify against code, tests and workflow evidence. |
+| `docs/CURRENT_STATE.md` | Runtime snapshot dated 2026-10-19 | Describes runtime boundaries and recorded checkpoints; CI claims must still be checked against commit-specific workflow evidence. |
 
 ## Constitution and ontology
 
@@ -66,6 +66,13 @@ The P2P runtime is a concrete tested system and must be evaluated separately fro
 - Linux and Windows regression workflows: `.github/workflows/build-p2p-linux.yml` and `.github/workflows/build-p2p-windows.yml`
 
 CI evidence applies to the tested commit and checks only. It does not approve ontology or prove production readiness.
+
+## Workflow execution constraint — SES-087 audit
+
+- `.github/workflows/g01-neo4j-gs01.yml` and `.github/workflows/g01-neo4j-gs02.yml` define Neo4j service containers and invoke Docker commands.
+- The project's standing constraint prohibits Docker/Kubernetes. Do not dispatch these workflows or trigger them by editing watched paths until the conflict is resolved.
+- SES-087 audit checkpoint 04 found no G-01 Neo4j run among the latest 100 workflow-run records inspected; this does not prove no older run exists.
+- These workflows are not evidence of Graph conformance. Candidate evaluation remains blocked by the declared human-approval status of DEC-007–DEC-013 and by the execution constraint.
 
 ## Deferred proposal
 
