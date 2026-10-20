@@ -2,7 +2,7 @@
 
 **Minimal, standalone P2P runtime for direct Node A ↔ Node B communication.**
 
-> **Current checkpoint: SES-081 = STONE.**  
+> **Latest closed technical session: SES-085 = STONE.** SES-087 is a separate documentation/audit session in progress.  
 
 ## Start here
 
@@ -116,4 +116,4 @@ The **System Builder** is a separate, broader metasystem concept. Historical Sys
 
 Repository state, approved architecture/ontology/Constitution, code, tests and CI evidence outrank chat memory.
 
-For the latest completed engineering change, see [SES-081 closeout](sessions/SES-081/SES-081_CLOSEOUT.md).
+For the latest completed technical change, see [SES-085 closeout](sessions/SES-085/SES-085_CLOSEOUT.md). For current architecture-authority audit work, see [SES-087 audit checkpoint 04](sessions/SES-087/SES-087_AUDIT_CHECKPOINT_04.md).
