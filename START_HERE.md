@@ -13,7 +13,7 @@ The repository is **not** a production P2P network and is **not** the complete S
 ## Current checkpoint
 
 - Branch: `main`
-- Latest checkpoint: **SES-081 = STONE**
+- Latest closed technical session: **SES-085 = STONE**; SES-087 documentation/audit is in progress
 - Current focus: preserve a small, modular Mini Node and find the next real GAP by inspection.
 - Rule: **INSPECT → UNDERSTAND → REAL GAP → RED → MINIMAL CHANGE → GREEN → EVIDENCE → STONE**
 
@@ -25,7 +25,8 @@ The repository is **not** a production P2P network and is **not** the complete S
 4. **[Project Overview for Humans](docs/PROJECT_OVERVIEW_FOR_HUMANS.md)** — history and rationale.
 5. **[AGENTS.md](AGENTS.md)** — rules for AI/human engineering work.
 6. **[Engineering Constitution](P2P_60-24_ENGINEERING_CONSTITUTION_v1.0.md)** — authority and autonomy boundaries.
-7. **[latest session](sessions/SES-081/SES-081_CLOSEOUT.md)** — latest completed engineering change.
+7. **[latest technical session](sessions/SES-085/SES-085_CLOSEOUT.md)** — latest completed engineering change.
+8. **[SES-087 audit checkpoint](sessions/SES-087/SES-087_AUDIT_CHECKPOINT_04.md)** — current architecture-authority and evidence audit.
 
 ## What is real today
 
@@ -42,6 +43,7 @@ Proven in repository/CI evidence:
 - Android ↔ native Windows USB/ADB integration path.
 - GitHub Actions evidence and artifacts.
 - Transport adapter boundary introduced in SES-081.
+- SES-085 regression test for EOF after authenticated handshake.
 
 ## What is deliberately not here yet
 
