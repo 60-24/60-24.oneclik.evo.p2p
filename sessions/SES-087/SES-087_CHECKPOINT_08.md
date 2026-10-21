@@ -58,3 +58,16 @@ No transcript content was changed. Avoid treating old claims such as “Trust La
 
 **CI snapshot: GREEN for the 15 listed runs on the audited HEAD.**  
 **Repository hygiene audit: OPEN.** Three `.bin` files are text artifacts with misleading extensions; the fourth is a Git bundle whose internal graph remains uninspected. No destructive cleanup was performed.
+
+
+## 6. Follow-up verification — 2026-10-22
+
+After this checkpoint was committed, CI for documentation commit `376a95ba79795e35ec523792a324064128d9bd6a` completed. The 13 listed workflow runs are all `success`: Windows, Linux, Android APK, SES-032 E2E, SES-043 proof, SES-045 node, SES-011/023/024/025 contracts, Beta local execution, and two P2P Evidence Check runs. This confirms the bounded workflow set, not every possible test or runtime condition.
+
+The Git bundle header contains only this advertised ref:
+
+`f79f53af7ff99caa06deda8cc2fa1b8d247f5f29 refs/heads/main`
+
+A direct lookup of that commit in the current repository API returned `No commit found for SHA`. Therefore the bundle appears to reference history not directly addressable as a commit in the current repository. Its embedded object graph has not been unpacked or validated; do not assume it is a backup of current `main` or restore it over the repository.
+
+No source/runtime files were changed. No binary artifact was deleted or executed.
