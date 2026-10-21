@@ -71,3 +71,10 @@ The Git bundle header contains only this advertised ref:
 A direct lookup of that commit in the current repository API returned `No commit found for SHA`. Therefore the bundle appears to reference history not directly addressable as a commit in the current repository. Its embedded object graph has not been unpacked or validated; do not assume it is a backup of current `main` or restore it over the repository.
 
 No source/runtime files were changed. No binary artifact was deleted or executed.
+
+
+## 7. Safety review of the archived Bash script
+
+A static review of the script's GitHub commit diff found a fallback instruction that places a Personal Access Token directly in the Git remote URL (`https://[PAT]@github.com/...`). This is unsafe practice because credentials can persist in Git configuration and may be exposed through logs or command history. The script was **not executed**, and no token was found or tested by this inspection.
+
+Recommendation: retain the artifact for traceability for now, but clearly treat it as historical/untrusted and never run it as-is. If a future archive cleanup is approved, move it to a clearly labelled historical-artifacts area and preserve its original commit/blob identity.
