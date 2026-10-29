@@ -12,11 +12,11 @@ The recommended model is:
 
 1. GitHub repository is the source of truth.
 2. A cloud development workspace (GitHub Codespaces, when needed) provides a terminal and editable working tree in the cloud.
-3. GitHub Copilot coding agent can take a bounded issue/task, work in its hosted environment, and propose changes as a pull request when enabled and configured.
+3. A selected cloud coding agent (for example, Claude Code or OpenAI Codex) takes a bounded task and proposes changes for review when enabled and configured.
 4. GitHub Actions runs repeatable tests/builds on hosted runners and stores artifacts.
 5. A human reviews evidence and approves protected decisions and merges.
 
-Use the simplest surface that fits the task: GitHub web UI for small edits/reviews; Copilot coding agent for bounded code tasks; Codespaces for interactive development/debugging; Actions for reproducible CI. These are complementary, not interchangeable.
+Use the simplest surface that fits the task: GitHub web UI for small edits/reviews; a selected coding agent for bounded code tasks; Codespaces for interactive development/debugging; Actions for reproducible CI. These are complementary, not interchangeable.
 
 ## 2. What “no local files” actually means
 
@@ -60,7 +60,23 @@ A Codespace is useful when work needs a terminal, an IDE, interactive tests, or 
 ### Secrets
 Never commit credentials, private keys, access tokens, or production secrets. Use GitHub Actions secrets/variables only where needed, least-privilege permissions, and explicit environment/review gates for sensitive deployment. Treat pull-request code and AI-generated changes as untrusted until reviewed and tested.
 
-## 5. What Copilot coding agent does — and does not do
+## 5. Agent-provider neutrality and collaboration
+
+Copilot is an example of a possible integration, not the project's mandatory agent. The project may use Claude Code, OpenAI Codex/ChatGPT-based coding workflows, GitHub-hosted third-party coding agents, or a combination, subject to availability, access, cost, and security review. Do not hardwire project continuity to one provider.
+
+The first goal is **one reliable cloud agent that can resume work from repository evidence**. Add a second agent only when there is a defined benefit, such as an independent architecture/security review or a separate test audit. More agents do not automatically mean better results; they can duplicate work, conflict on files, consume extra quota, and produce inconsistent assumptions.
+
+Provider selection must compare actual capabilities for this repository:
+- can work on a GitHub repository without a local clone on the user's computer;
+- can run the required build/tests in a reproducible cloud environment;
+- can create a branch and submit a pull request without bypassing review;
+- respects repository instructions, permission boundaries, and protected decisions;
+- supports resumable tasks or, at minimum, durable handoff via issues, commits, and session notes;
+- has acceptable price, usage limits, privacy terms, and account availability.
+
+Claude's GitHub repository connector may provide repository context for analysis, but repository reading/sync is not by itself the same as an agent that can edit code, execute tests, and create a pull request. Claude Code cloud sessions and OpenAI Codex Cloud are separate coding-agent approaches that can work in hosted environments; verify the exact account/repository access and limits before choosing one. Current provider documentation is linked below.
+
+## 6. What a coding agent does — and does not do
 
 When available and enabled for the repository/account, GitHub Copilot coding agent can be assigned a bounded task, work in a hosted environment, use configured tools, and submit a pull request for review. Repository instructions such as `AGENTS.md` help establish project rules.
 
@@ -68,7 +84,7 @@ It is not a guarantee of unrestricted, uninterrupted, indefinitely autonomous wo
 
 **Continuity belongs in repository artifacts**, not in an assumed permanent agent memory: task/issue, branch, commits, session handoff, tests, evidence, and next action. An agent should resume by inspecting these artifacts and the current repository state.
 
-## 6. P2P architecture: what the analogy does and does not imply
+## 7. P2P architecture: what the analogy does and does not imply
 
 The target is a peer-to-peer application, not a blockchain. “Client” and “server” can be roles played by processes on a device: a node may listen for inbound connections and also initiate outbound connections. During development, two processes on one computer can test the protocol over loopback; that proves local process communication, not communication between physical devices.
 
@@ -82,7 +98,7 @@ P2P does not mean “no servers under any circumstances.” Discovery/bootstrap,
 
 Also distinguish **two roles on one device** from **a useful multi-device P2P network**. A loopback test is an early protocol test; LAN and Internet tests require separate evidence. CI success does not prove real-world connectivity through every router, firewall, carrier-grade NAT, or mobile network.
 
-## 7. Recommended engineering workflow
+## 8. Recommended engineering workflow
 
 Follow the repository's existing method:
 
@@ -98,13 +114,13 @@ For each bounded task:
 7. Open a pull request with evidence. Do not silently merge architectural, protocol, ontology, or security-governance decisions that require human approval.
 8. Record the commit, checks, known limitations, and next step in repository documentation/session notes.
 
-## 8. Current scope and evidence boundary
+## 9. Current scope and evidence boundary
 
 As recorded in `docs/CURRENT_STATE.md` and `README.md`, the current implementation has Linux/Windows build paths and an Android APK build path, with CI artifacts. An artifact is not necessarily a permanent public release, and a successful workflow proves only the checks actually executed for that commit.
 
 Current limitations include automatic peer discovery, NAT traversal, relay infrastructure, end-to-end encryption, advanced authorization, GUI, automatic installation, and production-grade Internet deployment. These are limitations, not automatic requirements. Do not claim that a complete Skype-like product exists today.
 
-## 9. Final shared interpretation
+## 10. Final shared interpretation
 
 - **The user need not program on or install a development environment on their personal computer.**
 - **Code still exists in a repository or cloud workspace while it is edited, compiled, and tested.**
@@ -119,5 +135,7 @@ Current limitations include automatic peer discovery, NAT traversal, relay infra
 
 - [GitHub Codespaces documentation](https://docs.github.com/en/codespaces)
 - [GitHub Actions documentation](https://docs.github.com/en/actions)
-- [GitHub Copilot coding agent documentation](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-coding-agent)
+- [Claude Code in the cloud](https://support.claude.com/en/articles/12618689-use-claude-code-in-the-cloud)
+- [OpenAI Codex Cloud](https://help.openai.com/en/articles/20001545-using-codex-cloud)
+- [GitHub third-party coding agents](https://docs.github.com/en/copilot/concepts/agent-capabilities/about-agents/about-third-party-coding-agents)
 - [GitHub Actions security hardening](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)
