@@ -15,6 +15,16 @@ from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat
 
 from .transport import TCPTransport, Transport
 
+from .trust import (
+    VOUCH,
+    Voucher,
+    is_authorized,
+    issue_voucher,
+    load_trusted_keys,
+    parse_vouch,
+    vouch_line,
+)
+
 from .protocol import (
     auth,
     auth_payload,
@@ -65,6 +75,8 @@ def _receive_line(conn: socket.socket, buffer: bytearray) -> str:
 def _validate_single_line_message(message: str) -> str:
     if "\n" in message or "\r" in message:
         raise ValueError("message must be a single line")
+    if message.startswith(f"{VOUCH} "):
+        raise ValueError("message must not start with the reserved VOUCH keyword")
     return message
 
 
@@ -110,6 +122,8 @@ class P2PNode:
         port: int = 0,
         identity_path: str | Path | None = None,
         transport: Transport | None = None,
+        trusted_keys: frozenset[bytes] | None = None,
+        voucher: Voucher | None = None,
     ) -> None:
         if not node_id:
             raise ValueError("node_id must not be empty")
@@ -123,6 +137,10 @@ class P2PNode:
             Encoding.Raw, PublicFormat.Raw
         )
         self.node_id = node_id_from_public_key(self.public_key)
+        self.trusted_keys = trusted_keys
+        if voucher is not None and voucher.subject_public_key != self.public_key:
+            raise ValueError("voucher subject does not match this node's identity")
+        self._voucher = voucher
         self.last_peer_id: str | None = None
         self.last_message: str | None = None
         self.transport = transport or TCPTransport()
@@ -153,9 +171,19 @@ class P2PNode:
                 auth_payload(peer_id, self.node_id, server_challenge),
             )
             self.last_peer_id = peer_id
-            self.last_message = _validate_single_line_message(
-                _receive_line(conn, buffer)
-            )
+            line = _receive_line(conn, buffer)
+            peer_voucher = None
+            if line.startswith(f"{VOUCH} "):
+                peer_voucher = parse_vouch(line, peer_public_key)
+                line = _receive_line(conn, buffer)
+            if self.trusted_keys is not None and not is_authorized(
+                peer_public_key, self.trusted_keys, peer_voucher
+            ):
+                raise ValueError(
+                    "peer not authorized: key is not trusted and no valid "
+                    "voucher from a trusted sponsor was presented"
+                )
+            self.last_message = _validate_single_line_message(line)
             print(
                 f"node {self.label} received from {peer_label}: "
                 f"{self.last_message}",
@@ -189,6 +217,8 @@ class P2PNode:
                 auth_payload(self.node_id, peer_id, server_challenge)
             )
             conn.sendall(f"{auth(signature)}\n".encode("utf-8"))
+            if self._voucher is not None:
+                conn.sendall(f"{vouch_line(self._voucher)}\n".encode("utf-8"))
             conn.sendall(f"{message}\n".encode("utf-8"))
             return _receive_line(conn, buffer)
 
@@ -196,10 +226,21 @@ class P2PNode:
         self._server.close()
 
 
-def _listen(address: str, node_id: str) -> int:
+def _listen(address: str, node_id: str, trusted_keys_path: str | None) -> int:
     try:
+        trusted_keys = (
+            load_trusted_keys(trusted_keys_path)
+            if trusted_keys_path is not None
+            else None
+        )
         host, port = _parse_address(address)
-        node = P2PNode(node_id, host, port, _identity_path_for_label(node_id))
+        node = P2PNode(
+            node_id,
+            host,
+            port,
+            _identity_path_for_label(node_id),
+            trusted_keys=trusted_keys,
+        )
     except ValueError as exc:
         print(f"ERROR: {exc}. Use the format IP:PORT (for example 0.0.0.0:9000).", file=sys.stderr)
         return 1
@@ -219,13 +260,31 @@ def _listen(address: str, node_id: str) -> int:
     return 0
 
 
-def _connect(address: str, node_id: str, message: str) -> int:
+def _connect(
+    address: str, node_id: str, message: str, voucher_path: str | None
+) -> int:
     try:
         host, port = _parse_address(address)
+        voucher = (
+            Voucher.from_line(Path(voucher_path).read_text(encoding="utf-8"))
+            if voucher_path is not None
+            else None
+        )
     except ValueError as exc:
         print(f"ERROR: {exc}. Use the format IP:PORT (for example 192.168.1.10:9000).", file=sys.stderr)
         return 1
-    client = P2PNode(node_id, identity_path=_identity_path_for_label(node_id))
+    except OSError as exc:
+        print(f"ERROR: Cannot read voucher file: {exc}.", file=sys.stderr)
+        return 1
+    try:
+        client = P2PNode(
+            node_id,
+            identity_path=_identity_path_for_label(node_id),
+            voucher=voucher,
+        )
+    except ValueError as exc:
+        print(f"ERROR: {exc}.", file=sys.stderr)
+        return 1
     try:
         response = client.send(host, port, message)
         print(response)
@@ -246,20 +305,80 @@ def _connect(address: str, node_id: str, message: str) -> int:
     return 0
 
 
+def _show_identity(node_id: str) -> int:
+    import base64
+
+    node = P2PNode(node_id, identity_path=_identity_path_for_label(node_id))
+    try:
+        print(f"node_id: {node.node_id}")
+        print(f"public_key: {base64.b64encode(node.public_key).decode('ascii')}")
+    finally:
+        node.close()
+    return 0
+
+
+def _issue_voucher(node_id: str, subject_public_key_b64: str) -> int:
+    import base64
+
+    try:
+        subject_public_key = base64.b64decode(
+            subject_public_key_b64.encode("ascii"), validate=True
+        )
+    except Exception:
+        print("ERROR: subject public key must be valid base64.", file=sys.stderr)
+        return 1
+    identity = _load_or_create_identity(_identity_path_for_label(node_id))
+    try:
+        voucher = issue_voucher(identity, subject_public_key)
+    except ValueError as exc:
+        print(f"ERROR: {exc}.", file=sys.stderr)
+        return 1
+    print(voucher.to_line())
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Minimal authenticated P2P node")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--listen")
     mode.add_argument("--connect")
+    mode.add_argument(
+        "--show-identity",
+        action="store_true",
+        help="print this node's NodeID and base64 public key, then exit",
+    )
+    mode.add_argument(
+        "--issue-voucher",
+        metavar="SUBJECT_PUBLIC_KEY_B64",
+        help="sign the given base64 public key with this node's identity and print a voucher line",
+    )
     parser.add_argument("--node-id", required=True, help="local display label; it also selects the local persistent identity store")
     parser.add_argument("--message")
+    parser.add_argument(
+        "--trusted-keys",
+        metavar="FILE",
+        help="listen mode: only accept peers whose key is listed in FILE (one base64 public key per line) or who present a voucher signed by a listed key",
+    )
+    parser.add_argument(
+        "--voucher",
+        metavar="FILE",
+        help="connect mode: present the voucher stored in FILE during the handshake",
+    )
     args = parser.parse_args()
 
     if args.connect and args.message is None:
         parser.error("--message is required with --connect")
+    if args.trusted_keys and not args.listen:
+        parser.error("--trusted-keys is only valid with --listen")
+    if args.voucher and not args.connect:
+        parser.error("--voucher is only valid with --connect")
+    if args.show_identity:
+        return _show_identity(args.node_id)
+    if args.issue_voucher:
+        return _issue_voucher(args.node_id, args.issue_voucher)
     if args.listen:
-        return _listen(args.listen, args.node_id)
-    return _connect(args.connect, args.node_id, args.message)
+        return _listen(args.listen, args.node_id, args.trusted_keys)
+    return _connect(args.connect, args.node_id, args.message, args.voucher)
 
 
 if __name__ == "__main__":
