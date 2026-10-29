@@ -27,6 +27,8 @@ The current runtime includes:
 - NodeID derived from the public key;
 - frame-size protection;
 - malformed/truncated/coalesced-frame handling;
+- optional trusted introductions (web of trust): a listening node can require
+  that a peer's key is trusted or vouched for by a trusted sponsor;
 - a transport boundary with TCP as the current adapter;
 - Linux and Windows executable builds;
 - Android APK build;
@@ -69,6 +71,34 @@ Node A:
 ```
 
 Use the real LAN IPv4 address of Node B.
+
+## Trusted introductions (web of trust)
+
+A listening node can require that every peer is either directly trusted or
+introduced by someone trusted. An introduction (voucher) is the sponsor's
+Ed25519 signature over the invited peer's public key. No server, no database.
+
+```bash
+# each person prints their identity once
+./P2P60-24Node --show-identity --node-id tomek
+./P2P60-24Node --show-identity --node-id siostra
+
+# the sponsor signs the invited person's public key
+./P2P60-24Node --issue-voucher <SIOSTRA_PUBLIC_KEY_B64> --node-id tomek > voucher-siostra.txt
+
+# Node B accepts only keys listed in trusted_keys, or peers vouched by them
+echo "<TOMEK_PUBLIC_KEY_B64>" > trusted_keys
+./P2P60-24Node --listen 0.0.0.0:39001 --node-id B --trusted-keys trusted_keys
+
+# the invited peer presents the voucher during the handshake
+./P2P60-24Node --connect <NODE_B_IP>:39001 --node-id siostra --voucher voucher-siostra.txt --message "hello"
+```
+
+A peer that is neither listed nor vouched for is rejected after
+authentication, before any message is accepted. Without `--trusted-keys` the
+listener behaves exactly as before (open, backward compatible).
+
+Evidence: `tests/test_trusted_introductions.py` (CI: "P2P trusted introductions").
 
 ## Evidence boundary
 
