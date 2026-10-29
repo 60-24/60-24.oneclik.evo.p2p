@@ -14,6 +14,10 @@ If you are new to the repository, read in this order:
 4. **[Project Overview](docs/PROJECT_OVERVIEW_FOR_HUMANS.md)** — history and rationale.
 5. **[AGENTS.md](AGENTS.md)** — how changes are made safely.
 
+## Development and automation boundaries
+
+See [Environment, Dependencies and AI-Agent Boundaries](docs/ENVIRONMENT_AND_AUTOMATION_BOUNDARIES.md) for the verified distinction between the end-user runtime, GitHub Actions, optional developer workspaces, databases, and engineering agents versus in-app AI.
+
 ## What the current program does
 
 Two independent nodes can:
