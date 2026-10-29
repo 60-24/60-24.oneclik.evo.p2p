@@ -13,6 +13,7 @@ If you are new to the repository, read in this order:
 3. **[Repository Map](docs/REPOSITORY_MAP.md)** — where things live.
 4. **[Project Overview](docs/PROJECT_OVERVIEW_FOR_HUMANS.md)** — history and rationale.
 5. **[AGENTS.md](AGENTS.md)** — how changes are made safely.
+6. **[GitHub Cloud Development Model](docs/GITHUB_CLOUD_DEVELOPMENT_MODEL.md)** — shared rules for cloud-only development, Copilot, dependencies, CI, and the end-user installation boundary.
 
 ## What the current program does
 
