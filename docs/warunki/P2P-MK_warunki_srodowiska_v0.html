@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P2P-MK v0: warunki środowiska</title>
+<style>
+:root{--bg:#f7f7f5;--fg:#1b1b1b;--muted:#666;--ok:#1b7f3b;--warn:#b26a00;--err:#b00020;--card:#fff;--line:#ddd}
+@media (prefers-color-scheme: dark){:root{--bg:#121417;--fg:#e8e8e8;--muted:#9aa0a6;--card:#1c2026;--line:#333}}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;margin:0;padding:16px;line-height:1.5}
+h1{font-size:1.4rem}h2{font-size:1.1rem;margin-top:1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+.tag{font-weight:600;padding:1px 6px;border-radius:4px;font-size:.85rem;color:#fff}
+.ok{background:var(--ok)}.warn{background:var(--warn)}.err{background:var(--err)}
+.muted{color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<h1>P2P-MK v0: warunki środowiska i urządzeń</h1>
+<p class="muted">Status: propozycja AI-D z delegacji Architekta, 2026-11-08. Wersja zasad: v0.</p>
+
+<h2>Zasada nadrzędna</h2>
+<div class="card">
+Brak progu wiekowego. Urządzenie jest dopuszczone, jeśli spełnia <b>minimum techniczne</b>. Pozostałe warunki tylko informują i nie blokują.
+</div>
+
+<h2>Poziomy wyniku preflight</h2>
+<div class="card">
+<p><span class="tag err">BŁĄD</span> blokuje start węzła. Tylko dla warunków bez obejścia.</p>
+<p><span class="tag warn">OSTRZEŻENIE</span> węzeł startuje w trybie ograniczonym, z opisem skutku.</p>
+<p><span class="tag ok">OK</span> warunek spełniony.</p>
+</div>
+
+<h2>Warunki</h2>
+<table>
+<tr><th>Obszar</th><th>Warunek</th><th>Wynik przy braku</th><th>Skutek</th></tr>
+<tr><td>Protokół</td><td>Zgodna wersja P2P-MK w handshake (ta sama wersja główna)</td><td><span class="tag err">BŁĄD</span></td><td>Połączenie odrzucone, z komunikatem o wersji</td></tr>
+<tr><td>Android</td><td>API ≥ 23 (Android 6.0)</td><td><span class="tag err">BŁĄD</span></td><td>Start niemożliwy</td></tr>
+<tr><td>Android</td><td>API 24+ (Android 7.0+)</td><td><span class="tag warn">OSTRZEŻENIE</span></td><td>Działa, ale wsparcie może być ograniczone (np. tło)</td></tr>
+<tr><td>Sieć</td><td>Wi-Fi lub dostęp do UDP 6024</td><td><span class="tag err">BŁĄD</span></td><td>Brak połączeń</td></tr>
+<tr><td>Sieć</td><td>Ta sama podsieć (np. 192.168.0.x)</td><td><span class="tag warn">OSTRZEŻENIE</span></td><td>Połączenie tylko z węzłami w tej samej podsieci</td></tr>
+<tr><td>Bateria</td><td>Brak optymalizacji baterii dla aplikacji</td><td><span class="tag warn">OSTRZEŻENIE</span></td><td>Połączenie może się zrywać przy uśpieniu ekranu</td></tr>
+<tr><td>Bezpieczeństwo</td><td>Odcisk węzła sprawdzony i zaufany</td><td><span class="tag warn">OSTRZEŻENIE</span></td><td>Wiadomości od niezaufanego węzła są oznaczone</td></tr>
+</table>
+
+<h2>Co nie jest warunkiem</h2>
+<div class="card">
+<ul>
+<li>Wiek urządzenia i rok wydania (nie ma progu lat).</li>
+<li>Konkretny model lub producent.</li>
+<li>Szyfrowanie: w v0 nieobowiązkowe, od v0.2 wymagane.</li>
+</ul>
+</div>
+
+<h2>Test referencyjny (pomiar, nie bramka)</h2>
+<div class="card">
+<p>Zapis czasu utrzymania połączenia, przyczyny zerwania i stanu z preflight. Wynik to dane do decyzji, nie warunek dopuszczenia.</p>
+</div>
+
+<h2>Otwarte</h2>
+<div class="card">
+<ul>
+<li>Minimum API zostaje 23 (bez zmiany w APK v0.1.0). Do rewizji po teście.</li>
+<li>Preflight jako osobny moduł L3 lub część kernela: do decyzji Architekta.</li>
+</ul>
+</div>
+</body>
+</html>
