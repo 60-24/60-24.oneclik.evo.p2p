@@ -1,0 +1,78 @@
+SES-090 GREEN RESULTS
+Base commit (main): 9410b7457d0266bae9e7b95a5da0b669cde5710e
+Code under test: implementation commit 17cf1238895fd092c858470be84282e6af0dbf1f; the tree additionally holds only documentation and workflow changes (no source/test changes since).
+Run date: 2026-11-21T04:29:46Z
+Python: Python 3.13.18  cryptography: 50.0.2
+Scope: local run, Linux only. GitHub Actions (including Windows and Android) NOT yet run for this branch.
+
+## New SES-090 tests (python -m pytest tests/test_message_integrity.py -v --tb=short)
+tests/test_message_integrity.py::test_valid_message_passes_through_node_api PASSED
+tests/test_message_integrity.py::test_valid_hand_crafted_frame_passes_and_text_may_contain_spaces_and_utf8 PASSED
+tests/test_message_integrity.py::test_empty_message_keeps_working PASSED
+tests/test_message_integrity.py::test_message_modified_by_relay_is_rejected PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[bit_flipped_signature] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[text_changed_after_signing] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[signed_by_other_identity] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[addressed_to_other_recipient] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sender_and_recipient_swapped] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[other_session_context] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[validly_signed_but_sequence_two] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[legacy_plain_line] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[empty_frame] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[lowercase_keyword] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[double_space_after_keyword] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[missing_text_separator] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sequence_zero] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sequence_leading_zero] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sequence_plus_sign] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sequence_unicode_digit] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sequence_beyond_63_bits] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[sequence_empty] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[signature_63_bytes] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[signature_65_bytes] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[signature_not_base64] PASSED
+tests/test_message_integrity.py::test_invalid_frame_is_rejected_and_not_delivered[signature_non_canonical_base64] PASSED
+tests/test_message_integrity.py::test_frame_captured_in_one_session_is_rejected_in_another PASSED
+tests/test_message_integrity.py::test_second_frame_coalesced_after_the_message_is_rejected PASSED
+tests/test_message_integrity.py::test_legacy_v1_client_is_rejected_by_v2_server_during_handshake PASSED
+tests/test_message_integrity.py::test_v2_client_refuses_legacy_v1_server_and_sends_nothing_more PASSED
+tests/test_message_integrity.py::test_handshake_challenges_are_32_bytes_and_fresh_per_connection PASSED
+tests/test_message_integrity.py::test_handshake_rejects_challenge_of_wrong_length[0] PASSED
+tests/test_message_integrity.py::test_handshake_rejects_challenge_of_wrong_length[31] PASSED
+tests/test_message_integrity.py::test_handshake_rejects_challenge_of_wrong_length[33] PASSED
+tests/test_message_integrity.py::test_message_payload_layout_matches_independent_reference PASSED
+tests/test_message_integrity.py::test_session_id_binds_every_handshake_component[0] PASSED
+tests/test_message_integrity.py::test_session_id_binds_every_handshake_component[1] PASSED
+tests/test_message_integrity.py::test_session_id_binds_every_handshake_component[2] PASSED
+tests/test_message_integrity.py::test_session_id_binds_every_handshake_component[3] PASSED
+tests/test_message_integrity.py::test_message_frame_roundtrip_and_argument_validation PASSED
+tests/test_message_integrity.py::test_receiver_enforces_strict_sequence_within_a_session PASSED
+tests/test_message_integrity.py::test_changing_the_session_context_invalidates_the_signature PASSED
+============================== 42 passed in 1.44s ==============================
+
+## Every node-related test file run by CI (one pytest process per file, as CI does)
+sessions/SES-043/test_p2p_two_nodes.py :: 1 passed
+sessions/SES-045/test_p2p_node_api.py :: 1 passed
+sessions/SES-046/test_minikernel_handshake.py :: 1 passed
+sessions/SES-047/test_lifecycle_protocol.py :: 2 passed
+sessions/SES-049/test_message_delivery.py :: 1 passed
+sessions/SES-055/test_bidirectional_identity.py :: 1 passed
+sessions/SES-058/test_non_loopback_ipv4.py :: 1 passed
+sessions/SES-059/test_cli_errors.py :: 5 passed
+sessions/SES-061/test_incomplete_handshake_timeout.py :: 1 passed
+sessions/SES-064/test_identity_transport_binding.py :: 2 passed
+sessions/SES-065/test_persistent_identity.py :: 2 passed
+sessions/SES-067/test_frame_size_limit.py :: 1 passed
+sessions/SES-068/test_incomplete_frame_eof.py :: 1 passed
+sessions/SES-069/test_coalesced_frames.py :: 1 passed
+sessions/SES-081/test_transport_boundary.py :: 2 passed
+sessions/SES-082/test_single_line_outbound_message.py :: 3 passed
+sessions/SES-083/test_inbound_message_line_validation.py :: 1 passed
+sessions/SES-084/test_deterministic_coalesced_frames.py :: 1 passed
+sessions/SES-085/test_eof_after_auth.py :: 1 passed
+tests/test_trusted_introductions.py :: 9 passed
+tests/test_local_executor_beta.py :: 3 passed
+tests/test_message_integrity.py :: 42 passed
+src/execution (inline test) :: 1 passed
+
+Baseline on main 9410b74: 41 tests in 21 files passed. Now: those 21 files (SES-069 updated) plus tests/test_message_integrity.py.

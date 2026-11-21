@@ -1,0 +1,13 @@
+SES-090 MUTATION CHECK
+Each row: one protection removed from a COPY of the implementation (commit 17cf1238895fd092c858470be84282e6af0dbf1f), then tests/test_message_integrity.py is run.
+Purpose: show the tests detect the removal. The repository tree is not modified.
+Run date: 2026-11-21T04:27:26Z
+
+session id left out of signed payload      DETECTED      7 failed, 35 passed in 1.42s
+recipient left out of signed payload       DETECTED      7 failed, 35 passed in 1.44s
+text length prefix left out                DETECTED      7 failed, 35 passed in 1.41s
+server challenge left out of session id    DETECTED      8 failed, 34 passed in 1.42s
+strict sequence check removed              DETECTED      2 failed, 40 passed in 1.45s
+canonical base64 check removed             DETECTED      1 failed, 41 passed in 1.47s
+data-after-message check removed           DETECTED      1 failed, 41 passed in 1.45s
+handshake context back to V1               DETECTED      2 failed, 40 passed in 6.45s
