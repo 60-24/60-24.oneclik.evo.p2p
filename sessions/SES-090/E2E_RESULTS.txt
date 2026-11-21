@@ -1,0 +1,31 @@
+SES-090 END-TO-END RESULTS (relay/MITM re-test + real two-process CLI)
+Implementation commit: 17cf1238895fd092c858470be84282e6af0dbf1f
+Run date: 2026-11-21T04:27:50Z
+Script: guarded run confined to /tmp/ses090-cli-test (fixed path, marker file, symlink and resolved-path checks); HOME is never overridden globally.
+Note: the relay script replaces the whole application line with plain text (as in the audit), so the server reports 'invalid message frame'. Tampering with the text INSIDE a valid frame is covered by tests/test_message_integrity.py::test_message_modified_by_relay_is_rejected ('message signature verification failed').
+
+== setup ==
+test dir      : /tmp/ses090-cli-test
+resolved path : /tmp/ses090-cli-test
+real HOME     : /root (not modified; identities go to /tmp/ses090-cli-test/home via per-command env)
+
+== 1. relay / MITM re-test (client -> relay -> server, message swapped after AUTH) ==
+client result      : no acknowledgement -> ValueError('incomplete frame')
+client sent        : MSG 1 gM997rlktRVEvFtmftDOIFE9bO80Az3+8IGdNKWbbKHUs0saVzHldMhsEA/UXQcs+jhm27Zn02X07KC5T3rlAQ== hello-from-A
+server received    : None
+server saw peer id : True (equals client's node id)
+server error       : ValueError('invalid message frame')
+relay script exit code: 0
+
+== 2. real CLI, two processes ==
+client   stdout/stderr : pong-from-B
+listener stdout/stderr : node B received from A: hello-from-A
+client   exit code     : 0
+listener exit code     : 0
+identity files created : 2 (inside the test dir)
+
+== cleanup ==
+removed /tmp/ses090-cli-test
+real HOME untouched: yes
+
+SUMMARY relay_exit=0 client_exit=0 listener_exit=0

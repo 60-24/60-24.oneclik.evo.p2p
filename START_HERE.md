@@ -35,6 +35,7 @@ Proven in repository/CI evidence:
 - TCP Node A ↔ Node B communication.
 - HELLO/WELCOME/AUTH handshake.
 - Ed25519 proof of possession.
+- Signed, session-bound application message (SES-090); the response is not authenticated.
 - NodeID derived from public key.
 - Persistent local identity.
 - Frame-size limit and malformed/truncated/coalesced-frame handling.

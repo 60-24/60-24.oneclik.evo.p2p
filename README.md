@@ -18,7 +18,7 @@ If you are new to the repository, read in this order:
 
 Two independent nodes can:
 
-`Node A → TCP → HELLO/WELCOME/AUTH → authenticated peer → message → response`
+`Node A → TCP → HELLO/WELCOME/AUTH → authenticated peer → signed message (MSG) → response`
 
 The current runtime includes:
 
@@ -27,6 +27,11 @@ The current runtime includes:
 - NodeID derived from the public key;
 - frame-size protection;
 - malformed/truncated/coalesced-frame handling;
+- message integrity (SES-090): the application message is an Ed25519-signed
+  `MSG` frame bound to the authenticated session, sender, recipient and
+  sequence number; the handshake context is V2, so V1 and V2 nodes reject each
+  other during the handshake. The response (`pong-from-B`) is **not**
+  authenticated;
 - optional trusted introductions (web of trust): a listening node can require
   that a peer's key is trusted or vouched for by a trusted sponsor;
 - a transport boundary with TCP as the current adapter;
@@ -120,7 +125,8 @@ The runtime does not yet provide:
 - automatic peer discovery,
 - NAT traversal,
 - relay infrastructure,
-- end-to-end encryption,
+- end-to-end encryption (messages are signed, not encrypted),
+- authenticated responses (see `sessions/SES-090/FOLLOWUP_SIGNED_RESPONSE.md`),
 - advanced authorization,
 - GUI,
 - automatic installation,

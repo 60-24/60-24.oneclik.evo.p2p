@@ -44,8 +44,12 @@ Node B records the peer identity and received application message.
 - current `src/p2p` runtime;
 - HELLO/WELCOME handshake;
 - bidirectional node identity;
-- application message A → B;
-- response B → A;
+- application message A → B as a signed `MSG` frame bound to the authenticated session (SES-090);
+  a modified, replayed, mis-addressed or cross-session message is rejected;
+- handshake context V2: nodes built before SES-090 (V1) cannot connect to nodes built after it, and
+  the reverse; both sides fail during the handshake, before any message is sent. Rebuild and
+  redeploy all nodes together;
+- response B → A (`pong-from-B`, **not** cryptographically authenticated);
 - one-file PyInstaller executable;
 - GitHub Actions artifact;
 - malformed peer handshake is handled as a user-facing CLI error on both sides.

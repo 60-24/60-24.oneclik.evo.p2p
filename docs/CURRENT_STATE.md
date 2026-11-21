@@ -73,6 +73,7 @@ The runtime currently does not provide:
 - NAT traversal,
 - relay infrastructure,
 - end-to-end encryption,
+- authenticated responses (the `pong-from-B` reply is unauthenticated; separate task, see `sessions/SES-090/FOLLOWUP_SIGNED_RESPONSE.md`),
 - advanced authorization,
 - GUI,
 - automatic installation,
@@ -108,6 +109,8 @@ The following sessions were recorded after the earlier SES-081 snapshot:
 - SES-083: inbound message line validation; merged to `main` according to its session record.
 - SES-084: deterministic regression test for coalesced TCP frames.
 - SES-085: regression test for EOF after authenticated handshake but before a complete application frame. The test checks the listener terminates, rejects the incomplete frame, records the authenticated peer, and leaves `last_message` unset. See `sessions/SES-085/SES-085_CLOSEOUT.md` and `sessions/SES-085/test_eof_after_auth.py`.
+
+- SES-090: message integrity. The application line after AUTH is an Ed25519-signed `MSG` frame bound to session, sender, recipient and sequence; handshake context bumped to V2 (V1/V2 peers reject each other during the handshake). Implemented on branch `ses-090/message-integrity` as a draft change; it reaches `main` only when the human merges it. Evidence and boundaries: `sessions/SES-090/SES-090_CLOSEOUT.md`.
 
 The Linux and Windows build workflows both invoke the SES-085 test. SES-085 closeout records Linux and Windows CI success for its tested implementation commit. This does **not** establish CI status for later documentation-only commits or every current HEAD.
 
