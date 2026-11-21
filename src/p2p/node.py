@@ -26,13 +26,17 @@ from .trust import (
 )
 
 from .protocol import (
+    MessageReceiver,
     auth,
     auth_payload,
     hello,
+    message_payload,
+    msg,
     node_id_from_public_key,
     parse_auth,
     parse_hello,
     parse_welcome,
+    session_id,
     verify_signature,
     welcome,
 )
@@ -171,6 +175,12 @@ class P2PNode:
                 auth_payload(peer_id, self.node_id, server_challenge),
             )
             self.last_peer_id = peer_id
+            receiver = MessageReceiver(
+                session_id(peer_id, self.node_id, client_challenge, server_challenge),
+                peer_id,
+                peer_public_key,
+                self.node_id,
+            )
             line = _receive_line(conn, buffer)
             peer_voucher = None
             if line.startswith(f"{VOUCH} "):
@@ -183,7 +193,11 @@ class P2PNode:
                     "peer not authorized: key is not trusted and no valid "
                     "voucher from a trusted sponsor was presented"
                 )
-            self.last_message = _validate_single_line_message(line)
+            _validate_single_line_message(line)
+            text = receiver.accept(line)
+            if buffer:
+                raise ValueError("unexpected data after message")
+            self.last_message = text
             print(
                 f"node {self.label} received from {peer_label}: "
                 f"{self.last_message}",
@@ -219,7 +233,18 @@ class P2PNode:
             conn.sendall(f"{auth(signature)}\n".encode("utf-8"))
             if self._voucher is not None:
                 conn.sendall(f"{vouch_line(self._voucher)}\n".encode("utf-8"))
-            conn.sendall(f"{message}\n".encode("utf-8"))
+            message_signature = self._identity_key.sign(
+                message_payload(
+                    session_id(
+                        self.node_id, peer_id, client_challenge, server_challenge
+                    ),
+                    self.node_id,
+                    peer_id,
+                    1,
+                    message,
+                )
+            )
+            conn.sendall(f"{msg(1, message_signature, message)}\n".encode("utf-8"))
             return _receive_line(conn, buffer)
 
     def close(self) -> None:
