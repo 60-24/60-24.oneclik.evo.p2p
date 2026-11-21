@@ -1,8 +1,8 @@
 # SES-090 — CLOSEOUT
 
-Status: IMPLEMENTED — GREEN in a local Linux run. Draft change, **not merged**, **GitHub Actions not yet
-run on this branch** (so Windows and Android are unverified). Not marked STONE: that status in this
-repository follows CI success on the tested commit.
+Status: IMPLEMENTED — GREEN locally and GREEN in GitHub Actions on commit `5829486` (9 of 9 workflow runs and
+13 of 13 check runs succeeded, including Linux, Windows and the Android build; see `CI_RESULTS.md`). Draft PR
+#20, **not merged**. STONE placement is left to the human decision.
 
 ## INSPECT
 
@@ -40,14 +40,21 @@ formats, `trust.py` and `transport.py` are unchanged; trust semantics are unchan
 - End to end: the audit relay attack no longer succeeds (client gets no acknowledgement, the listener sets no
   message); two real CLI processes exchange `hello-from-A` with exit codes 0 and 0 (`E2E_RESULTS.txt`).
 
+## CI (evidence)
+
+GitHub Actions on `5829486`: all 9 workflow runs and 13 check runs `success`, commit status `p2p/evidence`
+`success`. The new test passed 42/42 on both Linux and Windows runners, and the packaged executables passed
+the two-node smoke test. No failure occurred, so no code change followed. Details, run links and the
+workflows that did not run (path, branch or tag filters) are in `CI_RESULTS.md`.
+
 ## BOUNDARY
 
-Evidence covers a local Linux run. It does not establish: CI status (Linux, Windows, Android) for this
-branch, behavior on physical networks, confidentiality (messages are signed, not encrypted), or
-authenticity of the response (`FOLLOWUP_SIGNED_RESPONSE.md`). Nodes before and after this change cannot
+Evidence covers a local Linux run and the CI run of commit `5829486`. It does not establish: CI status of
+later documentation-only commits, behavior on physical networks or an Android device, confidentiality
+(messages are signed, not encrypted), or authenticity of the response (`FOLLOWUP_SIGNED_RESPONSE.md`). Nodes before and after this change cannot
 interoperate; deploy all nodes together. Residual risks: see section 4 of the specification.
 
 ## Open for the human
 
-Review the draft PR, let CI run, decide the follow-up on the response, and decide on merging. Nothing was
+Review the draft PR, decide the follow-up on the response, and decide on merging. Nothing was
 merged and no repository setting was changed.

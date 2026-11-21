@@ -3,7 +3,7 @@ Base commit (main): 9410b7457d0266bae9e7b95a5da0b669cde5710e
 Code under test: implementation commit 17cf1238895fd092c858470be84282e6af0dbf1f; the tree additionally holds only documentation and workflow changes (no source/test changes since).
 Run date: 2026-11-21T04:29:46Z
 Python: Python 3.13.18  cryptography: 50.0.2
-Scope: local run, Linux only. GitHub Actions (including Windows and Android) NOT yet run for this branch.
+Scope: local run, Linux only. GitHub Actions had not yet run at the time of this local run; the CI results for the pushed commit are in CI_RESULTS.md.
 
 ## New SES-090 tests (python -m pytest tests/test_message_integrity.py -v --tb=short)
 tests/test_message_integrity.py::test_valid_message_passes_through_node_api PASSED

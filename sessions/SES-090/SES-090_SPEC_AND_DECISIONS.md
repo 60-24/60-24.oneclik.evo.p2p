@@ -102,7 +102,9 @@ message in the same buffer.
   change the handshake without need"). The new `MSG` parser is strict.
 - Compatibility: nodes built before and after this change cannot talk to each other. Release binaries from
   earlier `v*` tags are incompatible; the Android APK and desktop builds must be rebuilt together.
-- Not verified here: GitHub Actions on this branch (including Windows and Android), physical networks.
+- CI: GitHub Actions passed on commit `5829486` (Linux, Windows, Android build, packaged smoke tests; see
+  `CI_RESULTS.md`). Still not verified: physical networks, an Android device, and the workflows that only run
+  on push to `main` or on tags.
 
 ## 5. Files
 
